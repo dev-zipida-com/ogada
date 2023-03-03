@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -18,6 +19,9 @@ type Restaurant struct {
 }
 
 func CrawlerByURL(ctx context.Context, url string, ch chan Restaurant) {
+
+	ctx, cancel := chromedp.NewContext(ctx)
+	defer cancel()
 
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(url),
@@ -35,7 +39,7 @@ func CrawlerByURL(ctx context.Context, url string, ch chan Restaurant) {
 	); err != nil {
 		panic(err)
 	}
-
+	fmt.Println(title)
 	// if err := chromedp.Run(ctx,
 	// 	chromedp.Text("#app-root > div > div > div > div:nth-child(6) > div > div.place_section.no_margin.vKA6F > div > div > div.O8qbU.dRAr1 > div > a > span.zPfVt", &context, chromedp.NodeVisible),
 	// ); err != nil {
@@ -53,9 +57,9 @@ func CrawlerByURL(ctx context.Context, url string, ch chan Restaurant) {
 	var size int64
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(url+"/menu/list"),
-		chromedp.WaitVisible("#app-root > div > div > div > div:nth-child(7) > div > div.place_section.no_margin > div > ul > li"),
-		chromedp.ScrollIntoView("#app-root > div > div > div > div.place_section.OP4V8 > div.zD5Nm"),
-		chromedp.EvaluateAsDevTools(`document.querySelectorAll("#app-root > div > div > div > div:nth-child(7) > div > div.place_section.no_margin > div > ul > li").length`, &size),
+		chromedp.ScrollIntoView("#app-root > div > div > div > div.place_section.OP4V8 > div.zD5Nm", chromedp.ByQuery),
+		chromedp.WaitVisible("#app-root > div > div > div > div:nth-child(6) > div > div.place_section.no_margin > div > ul > li", chromedp.ByQuery),
+		chromedp.Evaluate(`document.querySelectorAll("#app-root > div > div > div > div:nth-child(6) > div > div.place_section.no_margin > div > ul > li").length`, &size),
 	); err != nil {
 		panic(err)
 	}
@@ -78,35 +82,25 @@ func CrawlerByURL(ctx context.Context, url string, ch chan Restaurant) {
 	ch <- restaurant
 }
 
-func main() {
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", true),
-		chromedp.Flag("no-sandbox", true),
-		chromedp.Flag("disable-gpu", true),
-		chromedp.Flag("disable-dev-shm-usage", true),
-		chromedp.Flag("disable-web-security", true),
-		chromedp.Flag("disable-site-isolation-trials", true),
-	)
-	// Chrome 실행
-	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	defer cancel()
-
-	ctx, cancel = chromedp.NewContext(ctx)
+func UrlScraper(ctx context.Context) []string {
+	ctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
 	var urls []string
-	keyword := "신사역 맛집"
+	keyword := "을지로입구역 맛집"
 
 	fmt.Println("Searching for", keyword)
 	naverMapSearchURL := fmt.Sprintf("https://m.map.naver.com/search2/search.naver?query=%s&sm=hty&style=v5", keyword)
 
-	if err := chromedp.Run(ctx, chromedp.Navigate(naverMapSearchURL)); err != nil {
+	if err := chromedp.Run(ctx,
+		chromedp.Navigate(naverMapSearchURL),
+	); err != nil {
 		panic(err)
 	}
 
-	time.Sleep(3 * time.Second)
+	chromedp.WaitVisible("#ct > div.search_listview._content._ctList > ul > li", chromedp.ByQuery)
 
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 15; i++ {
 		cssSelector := fmt.Sprintf("#ct > div.search_listview._content._ctList > ul > li:nth-child(%d) > div.item_info > a.a_item.a_item_distance._linkSiteview", i)
 
 		var dataCID string
@@ -123,14 +117,43 @@ func main() {
 			urls = append(urls, naverMapURL)
 		}
 	}
+	return urls
+}
+
+func main() {
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", true),
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("disable-dev-shm-usage", true),
+		chromedp.Flag("disable-web-security", true),
+		chromedp.Flag("disable-site-isolation-trials", true),
+	)
+	// Chrome 실행
+	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
+
+	var urls []string
+	urls = UrlScraper(ctx)
+
+	ch := make(chan Restaurant)
+
+	// 10개의 크롤링 작업을 각각의 고루틴으로 실행
 	for _, url := range urls {
-		ch := make(chan Restaurant, 1)
-
 		go CrawlerByURL(ctx, url, ch)
+	}
 
-		// Send the extracted value to the channel
+	// 모든 크롤링 작업이 완료될 때까지 대기
+	var wg sync.WaitGroup
+	wg.Add(len(urls))
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	// 채널에서 결과를 수신하여 출력
+	for i := 0; i < len(urls); i++ {
 		store := <-ch
-
 		fmt.Println("URL:", store.URL)
 		fmt.Println("상호명:", store.Title)
 		fmt.Println("카테고리:", store.Category)
