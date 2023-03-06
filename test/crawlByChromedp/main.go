@@ -10,9 +10,11 @@ import (
 )
 
 type Restaurant struct {
+	Location string
 	URL      string
 	Title    string
 	Category string
+	Image    string
 	Phone    string
 	Context  string
 	Menu     map[string]string
