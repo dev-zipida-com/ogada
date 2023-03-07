@@ -158,16 +158,29 @@ func UrlScraper(keyword string, ctx context.Context) []ThumbNail {
 	timeout, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	var size int64
+	var size int
+	var res string
 	if err := chromedp.Run(timeout,
 		chromedp.Navigate(naverMapSearchURL),
-		chromedp.WaitVisible("#ct > div.search_listview._content._ctList > ul > li", chromedp.ByQuery),
-		chromedp.Evaluate(`document.querySelectorAll("#ct > div.search_listview._content._ctList > ul > li").length`, &size),
+		chromedp.Title(&res),
 	); err != nil && err != context.DeadlineExceeded {
 		panic(err)
 	}
+	// if res == "404 Not Found" {
+	// 	if err := chromedp.Run(ctx,
+	// 	chromedp.Reload(),
+	// )}; err != nil {
+	// 	panic(err)
+	// }
 
-	for i := 1; i <= 1; i++ {
+	if err := chromedp.Run(ctx,
+		chromedp.WaitVisible("#ct > div.search_listview._content._ctList > ul > li", chromedp.ByQuery),
+		chromedp.Evaluate(`document.querySelectorAll("#ct > div.search_listview._content._ctList > ul > li").length`, &size),
+	); err != nil {
+		panic(err)
+	}
+
+	for i := 1; i <= size; i++ {
 		cssSelector := fmt.Sprintf("#ct > div.search_listview._content._ctList > ul > li:nth-child(%d) > div.item_info > a.a_item.a_item_distance._linkSiteview", i)
 		imageSelector := fmt.Sprintf("#ct > div.search_listview._content._ctList > ul > li:nth-child(%d) > div.item_info > a.item_thumb._itemThumb > img._thumbImg", i)
 
@@ -212,10 +225,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	keyword := []string{"천미미 서울 강남구", "꿉당 서울 서초구", "영동설렁탕 서울 서초구",
-		"은행골 신사점 서울 강남구", "온달집 본점 서울 강남구", "대도식당 강남대로점 서울 서초구",
-		"더페이머스버거 신사점 서울 강남구", "송쉐프 본점 서울 강남구", "현우동 서울 강남구",
-		"마일스톤커피 서울 강남구", "브루클린더버거조인트 가로수길 서울 강남구", "쮸즈 서울 강남구"}
+	keyword := []string{"강남역 맛집"}
 
 	var thumbNails []ThumbNail
 	wg := sync.WaitGroup{}
@@ -228,12 +238,12 @@ func main() {
 	}
 	wg.Wait()
 
-	ch := make(chan Restaurant, 10)
+	ch := make(chan Restaurant, 5)
 	var mu sync.Mutex
 	wg.Add(len(thumbNails))
 
 	// 10개의 고루틴으로 처리
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		go func() {
 			for {
 				// 새로운 URL을 가져오기 위해 뮤텍스 사용
