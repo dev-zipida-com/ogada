@@ -126,7 +126,7 @@ func CrawlerByURL(ctx context.Context, url string, ch chan Restaurant) {
 	)
 	CheckErr(err, title+" menuList "+menuList+header)
 
-	for i := 0; i < int(size); i++ {
+	for i := 0; i < 20; i++ {
 		var name, price, nameTag, priceTag string
 		// if isElementExist {
 		// 	nameTag = fmt.Sprintf("#root > div.naver_order_contents > div > div > div.order_list > div:nth-child(2) > div > ul > li:nth-child(%d) > div > a > div.info_detail > div.tit", i+1)
@@ -240,6 +240,7 @@ func main() {
 		chromedp.Flag("disable-dev-shm-usage", true),
 		chromedp.Flag("disable-web-security", true),
 		chromedp.Flag("disable-site-isolation-trials", true),
+		chromedp.Flag("blink-settings", "imagesEnabled=false"),
 	)
 	// Chrome 실행
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
