@@ -2,6 +2,6 @@ package myapp
 
 import "testing"
 
-func TestIndex(t *testing.T) {
+func TestIndexPathHandler(t *testing.T) {
 
 }
