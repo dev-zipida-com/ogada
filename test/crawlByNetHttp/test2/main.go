@@ -159,28 +159,23 @@ func UrlScraper(keyword string, ctx context.Context) []ThumbNail {
 	defer cancel()
 
 	var size int
-	var res string
 	if err := chromedp.Run(timeout,
 		chromedp.Navigate(naverMapSearchURL),
-		chromedp.Title(&res),
 	); err != nil && err != context.DeadlineExceeded {
 		panic(err)
 	}
-	// if res == "404 Not Found" {
-	// 	if err := chromedp.Run(ctx,
-	// 	chromedp.Reload(),
-	// )}; err != nil {
-	// 	panic(err)
-	// }
 
-	if err := chromedp.Run(ctx,
+	if err := chromedp.Run(timeout,
 		chromedp.WaitVisible("#ct > div.search_listview._content._ctList > ul > li", chromedp.ByQuery),
 		chromedp.Evaluate(`document.querySelectorAll("#ct > div.search_listview._content._ctList > ul > li").length`, &size),
-	); err != nil {
+	); err != nil && err != context.DeadlineExceeded {
 		panic(err)
 	}
+	if size == 0 {
+		return thumbNails
+	}
 
-	for i := 1; i <= size; i++ {
+	for i := 1; i <= 1; i++ {
 		cssSelector := fmt.Sprintf("#ct > div.search_listview._content._ctList > ul > li:nth-child(%d) > div.item_info > a.a_item.a_item_distance._linkSiteview", i)
 		imageSelector := fmt.Sprintf("#ct > div.search_listview._content._ctList > ul > li:nth-child(%d) > div.item_info > a.item_thumb._itemThumb > img._thumbImg", i)
 
@@ -225,25 +220,33 @@ func main() {
 		log.Fatal(err)
 	}
 
-	keyword := []string{"강남역 맛집"}
+	keyword := []string{"cgv 압구정본관"}
 
 	var thumbNails []ThumbNail
+	sem := make(chan struct{}, 6)
 	wg := sync.WaitGroup{}
 	for _, kw := range keyword {
-		wg.Add(1)
+		// 버퍼 채널에 빈 구조체를 전송하여 동시 실행 가능 개수를 줄입니다.
+		sem <- struct{}{}
 		go func(k string) {
-			defer wg.Done()
+			defer func() {
+				// 버퍼 채널에서 구조체를 수신하여 동시 실행 가능 개수를 늘립니다.
+				<-sem
+			}()
 			thumbNails = append(thumbNails, UrlScraper(k, ctx)...)
 		}(kw)
 	}
+	for i := 0; i < 6; i++ {
+		sem <- struct{}{} // 남아 있는 동시 실행 가능한 작업들을 모두 마무리합니다.
+	}
 	wg.Wait()
 
-	ch := make(chan Restaurant, 5)
+	ch := make(chan Restaurant, 10)
 	var mu sync.Mutex
 	wg.Add(len(thumbNails))
 
 	// 10개의 고루틴으로 처리
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		go func() {
 			for {
 				// 새로운 URL을 가져오기 위해 뮤텍스 사용
@@ -261,7 +264,6 @@ func main() {
 			}
 		}()
 	}
-
 	// 모든 크롤링 작업이 완료될 때까지 대기
 	go func() {
 		wg.Wait()
