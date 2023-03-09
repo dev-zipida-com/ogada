@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/unrolled/render"
+	"github.com/urfave/negroni"
 )
 
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
@@ -47,8 +48,8 @@ func (a *AppHandler) indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AppHandler) getUserCourseListHandler(w http.ResponseWriter, r *http.Request) {
-	sessionId := getSesssionID(r)
-	list := a.db.GetUserCourse(sessionId)
+	// sessionId := getSesssionID(r)
+	list := a.db.GetUserCourse()
 	rd.JSON(w, http.StatusOK, list)
 }
 
@@ -92,7 +93,7 @@ func (a *AppHandler) deleteUserCourseByIdHandler(w http.ResponseWriter, r *http.
 	// 세션 쿠키에서 sessionId를 추출합니다.
 	sessionId := getSesssionID(r)
 	if err != nil {
-		http.Error(w, "Invalid session ID", http.StatusBadRequest)
+		http.Error(w, "Invalid Token", http.StatusBadRequest)
 		return
 	}
 	// 해당 id를 갖는 userCourse를 조회합니다.
@@ -127,20 +128,27 @@ func CheckSignin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) 
 	// if user already signed in
 	sessionID := getSesssionID(r)
 	if sessionID != "" {
+
 		next(w, r)
 		return
 	}
-
 	// if not user sign in
 	// redirect singin.html
-	http.Redirect(w, r, "/auth/google/login", http.StatusTemporaryRedirect)
+	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
+	// http.Redirect(w, r, "/auth/google/login", http.StatusTemporaryRedirect)
 }
 
 func MakeHandler(dbConn string) *AppHandler {
 	r := mux.NewRouter()
+	n := negroni.New(
+		negroni.NewRecovery(),
+		negroni.NewLogger(),
+		negroni.HandlerFunc(CheckSignin))
+	n.UseHandler(r)
 
 	a := &AppHandler{
-		Handler: r,
+		Handler: n,
 		db:      model.NewDBHandler("postgresql://postgres:456123@localhost:5432/dataplanner?sslmode=disable"),
 	}
 

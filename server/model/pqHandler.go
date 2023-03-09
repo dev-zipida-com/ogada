@@ -12,7 +12,7 @@ type pqHandler struct {
 	db *sql.DB
 }
 
-func (s *pqHandler) GetUserCourse(sessionId string) []*UserCourseRes {
+func (s *pqHandler) GetUserCourse() []*UserCourseRes {
 	userCourses := []*UserCourseRes{}
 	rows, err := s.db.Query("SELECT id, email, course FROM usercourses")
 	if err != nil {

@@ -1,7 +1,7 @@
 package model
 
 type DBHandler interface {
-	GetUserCourse(sessionId string) []*UserCourseRes
+	GetUserCourse() []*UserCourseRes
 	GetUserCourseById(id int) *UserCourse
 	GetUserCoursesBySessionId(sessionId string) []*UserCourse
 	AddUserCourse(sessionId string, data UserCourse) *UserCourse
