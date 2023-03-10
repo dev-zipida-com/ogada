@@ -1,0 +1,270 @@
+0
+URL: https://m.place.naver.com/restaurant/1721781825
+상호명: 사당역 힘찬정육식당
+위치 정보: 서울 관악구 남현1길 58 1층 힘찬정육식당
+카테고리: 정육식당
+전화번호: 02-521-6366
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20181001_98%2F153838180554329MIv_JPEG%2FEJn1ybC1q5URYiTsGyEG8sWI.jpeg.jpg
+설명: 
+메뉴: map[돼지반마리(500g)2인분:39,000원 돼지한마리(800g),3~4인분사진대표:59,900원 소반마리(500g),2인분:49,000원 소한마리(800g),3~4인분사진대표:69,900원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/1541384842
+상호명: 주신당
+위치 정보: 서울 중구 퇴계로 411
+카테고리: 바(BAR)
+전화번호: 02-2231-1806
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20191107_110%2F1573102831328jjcnb_JPEG%2FkSTMRKfiyx6lqEsdXc1sl0fc.jpg
+설명: 
+메뉴: map[시그니처 칵테일사진:16,000~18,000 위스키:변동 클래식칵테일:16,000~21,000]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1063095683
+상호명: 쌤쌤쌤
+위치 정보: 서울 용산구 한강대로50길 25 1층
+카테고리: 양식
+전화번호: 0507-1309-1103
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20220725_173%2F1658712153051y37hy_JPEG%2F9EE22DAF-0EEC-4647-B775-76673741E19B.jpeg
+설명: 
+메뉴: map[CALIFORNIA ST LASAGNA:19,000원 JAMBON BEURRE PASTA:19,000원 SAM HOUSE STEAK:34,000원 SWEET POTATO GNOCCHI:9,000원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/37869877
+상호명: 금돼지식당
+위치 정보: 서울 중구 다산로 149
+카테고리: 돼지고기구이
+전화번호: 0507-1307-8750
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20200318_209%2F1584503270761pysjC_JPEG%2FBz1xrQuuzh6QW3RhWi9bP7vG.jpeg.jpg
+설명: 
+메뉴: map[껍데기(120g):14,000원 눈꽃목살(1인분150g)사진:18,000원 등목살(150g):19,000원 본삼겹(1인분150g):19,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1687684396
+상호명: 트라가 강남역점
+위치 정보: 서울 서초구 강남대로55길 24 2층 201호 트라가
+카테고리: 스페인음식
+전화번호: 0507-1313-3523
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230222_245%2F16769949616159Tmiu_JPEG%2F%25C6%25AE%25B6%25F3%25B0%25A1_%25B0%25AD%25B3%25B2%25BF%25AA%25C1%25A1_%25BF%25DC%25BA%25CE_01.jpg
+설명: 
+메뉴: map[감바스피칸테+빵5p:17,000원 트라가 프리미엄세트(3~4인):129,000원 트라가빠에야:30,000원 트라가세트(2인):69,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1144038812
+상호명: 부타이 1막
+위치 정보: 서울 강남구 테헤란로88길 22
+카테고리: 일식당
+전화번호: 02-544-8422
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20220414_66%2F1649924060607weHEK_JPEG%2F%25B7%25CE%25B0%25ED_%25BA%25CE%25C5%25B8%25C0%25CC_1.jpg
+설명: 
+메뉴: map[로스카츠 정식:14,000원 마제소바:11,000원 모리아와세카츠:32,000원 히레카츠 정식:15,000원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/1869238855
+상호명: 유니의우아한식탁
+위치 정보: 서울 마포구 동교로38길 27-8 2층 유니의우아한식탁
+카테고리: 이탈리아음식
+전화번호: 02-6085-7942
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20210208_198%2F1612748004089re3aS_JPEG%2FtR6ue-5jNbYrdiJVRo8pYgdn.jpg
+설명: 
+메뉴: map[눈꽃치즈 파스타사진대표:17,000원 새우 칠리토마토 파스타사진:17,000원 아라비아따 파스타:15,000원 찹스테이크 토마토 리조또사진대표:18,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/13332007
+상호명: 베트남고향식당
+위치 정보: 경기 안산시 단원구 중앙대로 443
+카테고리: 베트남음식
+전화번호: 031-492-0865
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20220716_140%2F1657944342020YXKhM_JPEG%2F1657944312146.jpg
+설명: 
+메뉴: map[만두 (chả giò):9,000원 반쎄오 (Bánh xèo):10,000원 소고기 쌀국수 (phở bò):8,000원 휴무안내:1원]
+---------------------------------------------------
+0
+4
+URL: https://m.place.naver.com/restaurant/1810277002
+상호명: 몽탄
+위치 정보: 서울 용산구 백범로99길 50
+카테고리: 육류,고기요리
+전화번호: 0507-1418-8592
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20190118_58%2F1547774525170WiHRr_JPEG%2FLQR4NdfTZrK-FNfGCrcUVhVn.jpg
+설명: 
+메뉴: map[몽탄냉면:8,000원 비빔냉면:8,000원 우대갈비사진대표:32,000원 짚불삼겹살대표:17,000원]
+---------------------------------------------------
+URL: https://m.place.naver.com/restaurant/1855821601
+상호명: 송돝
+위치 정보: 서울 송파구 오금로15길 8 1층
+카테고리: 육류,고기요리
+전화번호: 02-422-9841
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20221206_260%2F16703092978334hz6k_JPEG%2F%25BB%25FD%25BB%25EF%25B0%25E3%25BB%25EC.JPG
+설명: 
+메뉴: map[비빔냉면(후식):5,000원 한돈너비목살:17,000원 한돈등꽃살:18,000원 한돈생삼겹살:17,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1470972061
+상호명: 해목정 X 연수동해물나라 역삼점
+위치 정보: 서울 강남구 봉은사로30길 76 1층
+카테고리: 해물,생선요리
+전화번호: 0507-1318-4330
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20221012_43%2F1665571167889WXQrY_JPEG%2FKakaoTalk_20221007_134012631.jpg
+설명: 
+메뉴: map[[점심만가능] 직화쭈꾸미볶음 (1인):10,000원 전복해물갈비찜(소갈비) 大 (4인):74,000원 해목정스페셜(황제해갈탕) 大 강추:129,000원 해목정정식 (해물철판볶음) 강추:15,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1938569438
+상호명: 망원동맛집 초월양곱창
+위치 정보: 서울 마포구 포은로 66 1층
+카테고리: 곱창,막창,양
+전화번호: 0507-1347-2134
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20200807_116%2F1596787238912UL7LT_JPEG%2Fn4GGOrZ5LV8L97ytU-OJhb4m.jpg
+설명: 
+메뉴: map[곱창모둠 200g:20,900원 소갈비살 180g:16,900원 한우곱창 200g:20,900원 한우대창 200g:19,900원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/38969614
+상호명: 까폼
+위치 정보: 서울 강남구 선릉로153길 18 지하1층
+카테고리: 태국음식
+전화번호: 0507-1411-7318
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20181006_136%2F15388263467956xmnr_JPEG%2FDunqlR9MCDsclX5iIq9zHSqS.jpg
+설명: 
+메뉴: map[뿌님팟퐁커리:27,000원 카오카무사진대표:13,000원 태국 소고기 쌀국수사진대표:10,000원 텃만꿍:13,000원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/1327043034
+상호명: 오제제 서울역
+위치 정보: 서울 용산구 한강대로 363-2 1층
+카테고리: 일식당
+전화번호: 070-4647-4650
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20200529_166%2F1590740645191yOFwm_JPEG%2FHKJEZY2ahZ54EpxITl0RGZKC.jpg
+설명: 
+메뉴: map[등심 돈가츠:14,000원 안심 돈가츠사진대표:16,000원 카레:3,000원 특등심 돈가츠:16,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1273652338
+상호명: 뭉텅 연신내고깃집
+위치 정보: 서울 은평구 연서로29길 22 1층
+카테고리: 돼지고기구이
+전화번호: 0507-1481-7772
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230126_140%2F1674725453927Rzg0V_JPEG%2FKakaoTalk_20221027_153327752_08.jpg
+설명: 
+메뉴: map[매콤 오돌뼈 볶음밥:7,000원 뭉텅 주먹구이 中 (500g):45,000원 뭉텅 주먹구이 大 (700g):59,000원 쫀득 이겹살:13,900원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/535057415
+상호명: 화덕고깃간 잠실새내점
+위치 정보: 서울 송파구 백제고분로9길 23 운관빌딩 1층
+카테고리: 화덕고깃간
+전화번호: 0507-1427-2889
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20190712_237%2F1562885653387SXsNi_JPEG%2FVzJkKvOomY2Q9Q5RS4RjakNC.jpg
+설명: 
+메뉴: map[꼬들살:14,000원 본 삼겹살:14,000원 특목살:14,000원 화덕고깃간세트(2인분):45,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/35135719
+상호명: 잘빠진메밀 서촌 본점
+위치 정보: 서울 종로구 자하문로11길 4
+카테고리: 막국수
+전화번호: 0507-1403-1214
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230112_37%2F1673500430936x0Hsy_JPEG%2F9.jpg
+설명: 
+메뉴: map[100프로 순메밀 막국수:9,000원 메밀꽃 만두전골 밥상:12,000원 잘빠진 술상(fantastic) 2인:25,000원 잘빠진한상(들기름/물/비빔 택 1):15,000원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/1987409655
+상호명: 도레미닭발
+위치 정보: 서울 성북구 동소문로24가길 17 1층
+카테고리: 닭발
+전화번호: 0507-1475-7985
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230116_37%2F16738550679495Sw6b_JPEG%2F%25BC%25BA%25BD%25C5%25BF%25A9%25B4%25EB%25B4%25DF%25B9%25DF_%25B5%25B5%25B7%25B9%25B9%25CC5.jpg
+설명: 
+메뉴: map[]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/20103854
+상호명: 머노까머나 대학로점
+위치 정보: 서울 종로구 창경궁로 236 이화빌딩 2층
+카테고리: 인도음식
+전화번호: 0507-1447-8850
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20150901_115%2F1441033911476fw99b_JPEG%2F166471505879519_0.jpg
+설명: 
+메뉴: map[그린샐러드:5,000원 머노까머나세트B(1인)/ 2인이상주문:15,000원 사모사(2pcs):4,000원 스페셜세트A(1인)/ 2인이상주문:25,000원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/1195319266
+상호명: 우리만두전골
+위치 정보: 서울 강북구 도봉로 274-1 1층 우리만두전골
+카테고리: 찌개,전골
+전화번호: 070-4647-3108
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20221228_133%2F1672222703751v4mqz_JPEG%2F%25C0%25B0%25B0%25B3%25B8%25B8%25B5%25CE%25C0%25FC%25B0%25F11.jpg
+설명: 
+메뉴: map[]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1675414705
+상호명: 쩜오각
+위치 정보: 경기 시흥시 서울대학로264번길 74 헤리움어반크로스1차 A동 2층 206호
+카테고리: 중식당
+전화번호: 0507-1352-2314
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20221217_56%2F1671237548302sybqx_JPEG%2F1000001047.jpg
+설명: 
+메뉴: map[간짜장:3,900원 볶음밥:3,900원 짜장면:2,900원 짬뽕:3,900원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/38502340
+상호명: 홍중샤브뷔페
+위치 정보: 서울 영등포구 도림로 128-1
+카테고리: 샤브샤브
+전화번호: 02-843-8584
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20210805_18%2F1628161233995NP0Ut_JPEG%2Fvdjy2gkjHH6y8kTnHDjYR6mL.JPG.jpg
+설명: 
+메뉴: map[뷔페 1인사진대표:19,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/11680222
+상호명: 광화문미진
+위치 정보: 서울 종로구 종로 19
+카테고리: 한식
+전화번호: 0507-1342-6198
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20151104_73%2F14466228923573jxU4_JPEG%2F167054567150405_2.jpg
+설명: 
+메뉴: map[냉메밀:11,000원 메밀 막국수:11,000원 비빔메밀:11,000원 온메밀:11,000원]
+---------------------------------------------------
+4
+URL: https://m.place.naver.com/restaurant/1974242355
+상호명: 고트델리 문래
+위치 정보: 서울 영등포구 도림로139길 14 2층
+카테고리: 샌드위치
+전화번호: 0507-1398-0816
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230107_279%2F16730474677225R86S_JPEG%2FAEF2EE52-023C-4641-885C-833C9028EAC2.jpeg
+설명: 
+메뉴: map[APPLE BACON:9,500원 GOATT BAGEL:9,500원 JAMBON BEURRE:9,000원 JAMBON FROMAGE:9,500원]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/19886185
+상호명: 할머니 즉석떡볶이
+위치 정보: 인천 연수구 청량로 235
+카테고리: 떡볶이
+전화번호: 032-833-9567
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20190113_84%2F1547366150621sm5rF_JPEG%2FACJtH7TMubHpVYGyDMhNwqvl.jpg
+설명: 
+메뉴: map[]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/101541891
+상호명: 스시오야붕
+위치 정보: 경기 시흥시 마유로 416 월드프라자 1F 111호 스시오야붕
+카테고리: 초밥,롤
+전화번호: 031-431-4541
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20170410_149%2F1491789246052kPyIj_JPEG%2F186357566267395_0.jpeg
+설명: 
+메뉴: map[]
+---------------------------------------------------
+0
+URL: https://m.place.naver.com/restaurant/1404508364
+상호명: 다독이네 숯불구이
+위치 정보: 서울 동작구 노량진로 106-5 1층
+카테고리: 육류,고기요리
+전화번호: 02-6101-9299
+이미지 URL: https://search.pstatic.net/common/?type=f&size=68x68&src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20171112_216%2F1510457832567HT2Q9_JPEG%2FuJDAVOKbEWctKCMo-CAzincK.jpg
+설명: 
+메뉴: map[돼지갈비사진:12,000원 뼈삼겹갈비사진대표:14,000원 생삼겹살대표:15,000원 소갈비살(150g):16,000원]
+---------------------------------------------------
