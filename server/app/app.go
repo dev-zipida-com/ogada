@@ -163,6 +163,7 @@ func MakeHandler(dbConn string) *AppHandler {
 	r.HandleFunc("/course/{id:[0-9]+}", a.getUserCourseByIdHandler).Methods("GET")
 	r.HandleFunc("/course/{id:[0-9]+}", a.deleteUserCourseByIdHandler).Methods("DELETE")
 	r.HandleFunc("/course", a.getUserCourseListHandler).Methods("GET")
+	r.HandleFunc("/crawling", a.getCrawlingStoreListHandler).Methods("POST")
 	r.HandleFunc("/", a.indexHandler)
 
 	return a
