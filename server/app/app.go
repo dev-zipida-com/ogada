@@ -16,6 +16,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// SESSION_KEY 를 바탕으로 쿠키 데이터를 암호화하는 저장소를 만든다.
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 var rd *render.Render = render.New()
 
@@ -28,6 +29,7 @@ func (a *AppHandler) Close() {
 	a.db.Close()
 }
 
+// 세션쿠키에 저장된 유저의 세션 ID 를 가져오는 함수
 var getSesssionID = func(r *http.Request) string {
 	session, err := store.Get(r, "session")
 	if err != nil {
@@ -39,6 +41,7 @@ var getSesssionID = func(r *http.Request) string {
 	if val == nil {
 		return ""
 	}
+
 	return val.(string)
 }
 
@@ -77,7 +80,8 @@ func (a *AppHandler) addUserCourseHandler(w http.ResponseWriter, r *http.Request
 	}
 	defer r.Body.Close()
 
-	userCourse := a.db.AddUserCourse(sessionId, user)
+	user.Email, _ = a.db.GetEmailBySessionId(sessionId)
+	userCourse := a.db.AddUserCourse(user)
 
 	rd.JSON(w, http.StatusCreated, userCourse)
 }
@@ -93,9 +97,10 @@ func (a *AppHandler) deleteUserCourseByIdHandler(w http.ResponseWriter, r *http.
 	// 세션 쿠키에서 sessionId를 추출합니다.
 	sessionId := getSesssionID(r)
 	if err != nil {
-		http.Error(w, "Invalid Token", http.StatusBadRequest)
+		http.Error(w, "Invalid Email", http.StatusBadRequest)
 		return
 	}
+	email, _ := a.db.GetEmailBySessionId(sessionId)
 	// 해당 id를 갖는 userCourse를 조회합니다.
 	userCourse := a.db.GetUserCourseById(id)
 	if userCourse == nil {
@@ -103,7 +108,7 @@ func (a *AppHandler) deleteUserCourseByIdHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	// 조회된 userCourse의 sessionId와 요청한 sessionId가 일치하는지 확인합니다.
-	if userCourse.SessionId != sessionId {
+	if userCourse.Email != email {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -132,10 +137,10 @@ func CheckSignin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) 
 		next(w, r)
 		return
 	}
-	// if not user sign in
-	// redirect singin.html
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 
+	// if not user sign in
+	// redirect login uri
+	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	// http.Redirect(w, r, "/auth/google/login", http.StatusTemporaryRedirect)
 }
 
@@ -153,7 +158,7 @@ func MakeHandler(dbConn string) *AppHandler {
 	}
 
 	r.HandleFunc("/auth/google/login", googleLoginHandler)
-	r.HandleFunc("/auth/google/callback", googleAuthCallback)
+	r.HandleFunc("/auth/google/callback", a.googleAuthCallback)
 	r.HandleFunc("/course/save", a.addUserCourseHandler).Methods("POST")
 	r.HandleFunc("/course/{id:[0-9]+}", a.getUserCourseByIdHandler).Methods("GET")
 	r.HandleFunc("/course/{id:[0-9]+}", a.deleteUserCourseByIdHandler).Methods("DELETE")

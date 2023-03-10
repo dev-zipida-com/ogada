@@ -1,10 +1,14 @@
 package model
 
 type DBHandler interface {
+	AddUser(user User) (*User, error)
+	GetEmailBySessionId(sessionId string) (string, error)
+	GetUserByEamil(email string) *User
+
 	GetUserCourse() []*UserCourseRes
 	GetUserCourseById(id int) *UserCourse
-	GetUserCoursesBySessionId(sessionId string) []*UserCourse
-	AddUserCourse(sessionId string, data UserCourse) *UserCourse
+	GetUserCoursesByEmail(email string) []*UserCourse
+	AddUserCourse(data UserCourse) *UserCourse
 	DeleteUserCourseById(id int) error
 	Close()
 }
