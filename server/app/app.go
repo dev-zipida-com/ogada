@@ -167,7 +167,7 @@ func MakeHandler(dbConn string) *AppHandler {
 
 	// CORS 미들웨어 생성
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://example.com", "http://localhost:3000"},
+		AllowedOrigins: []string{"*", "http://localhost:3000"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Content-Type", "Authorization"},
 		MaxAge:         86400,

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -27,13 +28,34 @@ type ThumbNail struct {
 }
 
 var opts = append(chromedp.DefaultExecAllocatorOptions[:],
-	chromedp.Flag("headless", false),
+	chromedp.Flag("headless", true),
 	chromedp.Flag("no-sandbox", true),
 	chromedp.Flag("disable-gpu", true),
 	chromedp.Flag("disable-dev-shm-usage", true),
-	chromedp.Flag("disable-web-security", true),
-	chromedp.Flag("disable-site-isolation-trials", true),
 	chromedp.Flag("blink-settings", "imagesEnabled=false, cssEnabled=false"),
+	chromedp.Flag("disk-cache-size", "268435456"),
+	chromedp.Flag("media-cache-size", "131072000"),
+	chromedp.Flag("disable-background-networking", true),
+	chromedp.Flag("disable-background-timer-throttling", true),
+	chromedp.Flag("disable-breakpad", true),
+	chromedp.Flag("disable-client-side-phishing-detection", true),
+	chromedp.Flag("disable-default-apps", true),
+	chromedp.Flag("disable-dev-shm-usage", true),
+	chromedp.Flag("disable-extensions", true),
+	chromedp.Flag("disable-hang-monitor", true),
+	chromedp.Flag("disable-ipc-flooding-protection", true),
+	chromedp.Flag("disable-popup-blocking", true),
+	chromedp.Flag("disable-prompt-on-repost", true),
+	chromedp.Flag("disable-renderer-backgrounding", true),
+	chromedp.Flag("disable-sync", true),
+	chromedp.Flag("disable-translate", true),
+	chromedp.Flag("metrics-recording-only", true),
+	chromedp.Flag("mute-audio", true),
+	chromedp.Flag("no-first-run", true),
+	chromedp.Flag("safebrowsing-disable-auto-update", true),
+	chromedp.Flag("disable-site-isolation-trials", true),
+	chromedp.Flag("disable-web-security", true),
+	chromedp.Flag("disable-background-timer-throttling", true),
 )
 
 func (a *AppHandler) getCrawlingStoreListHandler(w http.ResponseWriter, r *http.Request) {
@@ -113,8 +135,8 @@ func CrawlerByURL(url string, ch chan ThumbNail, ctx context.Context) {
 	ctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
-	// timeout, cancel := context.WithTimeout(ctx, 3*time.Second)
-	// defer cancel()
+	timeout, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
 	// Navigate 함수의 콜백 함수에서 응답 코드 확인 및 새로고침
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(url),
@@ -124,9 +146,16 @@ func CrawlerByURL(url string, ch chan ThumbNail, ctx context.Context) {
 
 	// Extract the desired value from the page
 	var openingTime, title string
-	err := chromedp.Run(ctx,
-		chromedp.WaitVisible("#mArticle > div.cont_essential > div.details_placeinfo > div:nth-child(3) > div > div.location_present > ul > li > span"),
+	err := chromedp.Run(timeout,
+		chromedp.WaitVisible("#mArticle > div.cont_essential > div:nth-child(1) > div.place_details > div > h2"),
 		chromedp.Text("#mArticle > div.cont_essential > div:nth-child(1) > div.place_details > div > h2", &title),
+	)
+	CheckErr(err)
+
+	timeout, cancel = context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	err = chromedp.Run(timeout,
 		chromedp.Text("#mArticle > div.cont_essential > div.details_placeinfo > div:nth-child(3) > div > div.location_present > ul > li > span", &openingTime),
 	)
 	CheckErr(err)
@@ -134,10 +163,13 @@ func CrawlerByURL(url string, ch chan ThumbNail, ctx context.Context) {
 	menu := make(map[string]string)
 	size := 0
 
-	if err := chromedp.Run(ctx,
+	if err := chromedp.Run(timeout,
 		chromedp.Evaluate(`document.querySelectorAll("#mArticle > div.cont_menu > ul > li").length`, &size),
 	); err != nil {
-		log.Fatal(err)
+		log.Println(err)
+	}
+	if size >= 6 {
+		size = 6
 	}
 
 	for i := 1; i <= size; i++ {
@@ -145,18 +177,18 @@ func CrawlerByURL(url string, ch chan ThumbNail, ctx context.Context) {
 
 		nameSelector := fmt.Sprintf("#mArticle > div.cont_menu > ul > li:nth-child(%d) > div > span", i)
 		priceSelector := fmt.Sprintf("#mArticle > div.cont_menu > ul > li:nth-child(%d) > div > em.price_menu", i)
-		err := chromedp.Run(ctx,
+		err := chromedp.Run(timeout,
 			chromedp.Text(nameSelector, &name),
 			chromedp.Text(priceSelector, &price),
 		)
 		CheckErr(err)
 
 		if name != "" && price != "" {
-			menu[name] = RemoveString(price)
+			menu[RemoveName(name)] = RemoveString(price)
 		}
 	}
-
-	ch <- ThumbNail{Title: title, Menu: menu}
+	log.Println(title, openingTime, menu)
+	ch <- ThumbNail{Title: title, OpeningTime: openingTime, Menu: menu}
 }
 
 func CheckErr(err error) {
@@ -173,4 +205,8 @@ func RemoveString(str string) string {
 	price = strings.ReplaceAll(price, "\n", "")
 
 	return price
+}
+
+func RemoveName(str string) string {
+	return strings.Replace(str, "추천\n", "", 1)
 }
