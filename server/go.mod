@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/lib/pq v1.10.7
+	github.com/rs/cors v1.8.3
 	github.com/unrolled/render v1.6.0
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/oauth2 v0.6.0

@@ -3,15 +3,17 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"server/model"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/rs/cors"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
 )
@@ -70,20 +72,35 @@ func (a *AppHandler) getUserCourseByIdHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (a *AppHandler) addUserCourseHandler(w http.ResponseWriter, r *http.Request) {
-	sessionId := getSesssionID(r)
+	// sessionId := getSesssionID(r)
 
-	var user model.UserCourse
-	err := json.NewDecoder(r.Body).Decode(&user)
+	// var user model.UserCourse
+	// Read the request body
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
 		return
 	}
-	defer r.Body.Close()
 
-	user.Email, _ = a.db.GetEmailBySessionId(sessionId)
-	userCourse := a.db.AddUserCourse(user)
+	// Convert the request body to a CourseInfo struct
+	var courseInfo model.UserCourse
+	err = json.Unmarshal(body, &courseInfo)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
 
-	rd.JSON(w, http.StatusCreated, userCourse)
+	// Convert the CourseInfo struct to JSON string
+	jsonString, err := json.Marshal(courseInfo)
+	if err != nil {
+		http.Error(w, "Failed to marshal CourseInfo struct", http.StatusInternalServerError)
+		return
+	}
+	log.Println(string(jsonString))
+	userCourseRes := a.db.AddUserCourse(string(jsonString))
+	log.Println(userCourseRes)
+
+	rd.JSON(w, http.StatusCreated, userCourseRes)
 }
 
 func (a *AppHandler) deleteUserCourseByIdHandler(w http.ResponseWriter, r *http.Request) {
@@ -95,12 +112,12 @@ func (a *AppHandler) deleteUserCourseByIdHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	// 세션 쿠키에서 sessionId를 추출합니다.
-	sessionId := getSesssionID(r)
-	if err != nil {
-		http.Error(w, "Invalid Email", http.StatusBadRequest)
-		return
-	}
-	email, _ := a.db.GetEmailBySessionId(sessionId)
+	// sessionId := getSesssionID(r)
+	// if err != nil {
+	// 	http.Error(w, "Invalid Email", http.StatusBadRequest)
+	// 	return
+	// }
+	// email, _ := a.db.GetEmailBySessionId(sessionId)
 	// 해당 id를 갖는 userCourse를 조회합니다.
 	userCourse := a.db.GetUserCourseById(id)
 	if userCourse == nil {
@@ -108,10 +125,10 @@ func (a *AppHandler) deleteUserCourseByIdHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	// 조회된 userCourse의 sessionId와 요청한 sessionId가 일치하는지 확인합니다.
-	if userCourse.Email != email {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
+	// if userCourse.Email != email {
+	// 	http.Error(w, "Forbidden", http.StatusForbidden)
+	// 	return
+	// }
 	// userCourse를 삭제합니다.
 	if err := a.db.DeleteUserCourseById(id); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -124,32 +141,45 @@ func (a *AppHandler) deleteUserCourseByIdHandler(w http.ResponseWriter, r *http.
 // 로그인 체크하는 함수
 func CheckSignin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	// if request URL is /signin.html, then next()
-	if strings.Contains(r.URL.Path, "/signin") ||
-		strings.Contains(r.URL.Path, "/auth") {
-		next(w, r)
-		return
-	}
+	// if strings.Contains(r.URL.Path, "/signin") ||
+	// 	strings.Contains(r.URL.Path, "/auth") {
+	// 	next(w, r)
+	// 	return
+	// }
 
-	// if user already signed in
-	sessionID := getSesssionID(r)
-	if sessionID != "" {
+	// // if user already signed in
+	// sessionID := getSesssionID(r)
+	// if sessionID != "" {
 
-		next(w, r)
-		return
-	}
+	// 	next(w, r)
+	// 	return
+	// }
 
 	// if not user sign in
 	// redirect login uri
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
-	// http.Redirect(w, r, "/auth/google/login", http.StatusTemporaryRedirect)
+	// http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	next(w, r)
+	return
 }
 
 func MakeHandler(dbConn string) *AppHandler {
 	r := mux.NewRouter()
+
+	// CORS 미들웨어 생성
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://example.com", "http://localhost:3000"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
+		MaxAge:         86400,
+	})
+
 	n := negroni.New(
 		negroni.NewRecovery(),
 		negroni.NewLogger(),
-		negroni.HandlerFunc(CheckSignin))
+		negroni.HandlerFunc(CheckSignin),
+		c,
+	)
+
 	n.UseHandler(r)
 
 	a := &AppHandler{
