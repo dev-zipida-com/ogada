@@ -4,6 +4,7 @@ import HomeButton from "./components/HomeButton";
 import TodayRecommends from "./components/TodayRecommends";
 import HorizonLine from "./components/HorizonLine";
 import { useRouter } from "next/router";
+import Weather from "./components/Weather";
 
 export default function Home() {
     return (
@@ -29,10 +30,11 @@ export default function Home() {
                 }}
             >
                 <HorizonLine text={"·"} />
+                <Weather />
                 <BoxGroup />
                 <HorizonLine text={"·"} />
-                <TodayRecommends todayRecommends={[]} />
-                <HorizonLine text={"·"} />
+                {/* <TodayRecommends todayRecommends={[]} /> */}
+                {/* <HorizonLine text={"·"} /> */}
                 <HomeButton />
             </div>
         </>

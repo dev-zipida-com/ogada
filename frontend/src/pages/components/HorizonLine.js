@@ -4,11 +4,11 @@ const HorizonLine = ({ text }) => {
     return (
         <div
             style={{
-                width: "30%",
+                width: "500px",
                 textAlign: "center",
                 borderBottom: "1px solid #aaa",
                 lineHeight: "0.1em",
-                margin: "40px 0 40px 0",
+                margin: "40px auto 40px auto",
             }}
         >
             <span style={{ background: "#fff", padding: "0 10px" }}>
