@@ -22,9 +22,7 @@ func newPQHandler(dbConn string) DBHandler {
 	statement, err := database.Prepare(
 		`CREATE TABLE IF NOT EXISTS usercourses (
 			id        SERIAL PRIMARY KEY,
-			email	  VARCHAR(256),
-			course    TEXT,
-			questionList TEXT,
+			dateCourse TEXT,
 			createdAt TIMESTAMP
 		);`)
 	if err != nil {
@@ -35,17 +33,17 @@ func newPQHandler(dbConn string) DBHandler {
 		panic(err)
 	}
 	// session ID 이 인덱스로 지정되어있지 않은경우 인덱스로 지정 (=검색시간 매우 빠름)
-	statement, err = database.Prepare(
-		`CREATE INDEX IF NOT EXISTS emailIndexOnUserCourses ON usercourses (
-			email ASC
-		);`)
-	if err != nil {
-		panic(err)
-	}
-	_, err = statement.Exec()
-	if err != nil {
-		panic(err)
-	}
+	// statement, err = database.Prepare(
+	// 	`CREATE INDEX IF NOT EXISTS emailIndexOnUserCourses ON usercourses (
+	// 		email ASC
+	// 	);`)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// _, err = statement.Exec()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	statement, err = database.Prepare(
 		`CREATE TABLE IF NOT EXISTS users (

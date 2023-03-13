@@ -57,9 +57,9 @@ func (s *pqHandler) GetUser(sessionId string) *User {
 	return &user
 }
 
-func (s *pqHandler) GetEmailBySessionID(sessionID string) (string, error) {
+func (s *pqHandler) GetEmailBySessionId(sessionId string) (string, error) {
 	var email string
-	err := s.db.QueryRow("SELECT email FROM users WHERE sessionId = $1", sessionID).Scan(&email)
+	err := s.db.QueryRow("SELECT email FROM users WHERE sessionId = $1", sessionId).Scan(&email)
 	if err != nil {
 		return "", err
 	}

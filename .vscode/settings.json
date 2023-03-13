@@ -1,0 +1,20 @@
+{
+  "cSpell.ignoreWords": ["chromedp", "goquery", "negroni"],
+  "gopls": { "ui.semanticTokens": true },
+  "window.zoomLevel": 0.3,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "workbench.activityBar.visible": true,
+  "editor.minimap.enabled": false,
+  "go.testOnSave": true,
+  "go.lintOnSave": "file",
+  "go.formatTool": "goimports",
+  "go.testFlags": ["-v"],
+  "go.autocompleteUnimportedPackages": true,
+  "[go]": {
+    "editor.insertSpaces": false,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  }
+}

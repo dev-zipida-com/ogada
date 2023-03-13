@@ -5,10 +5,10 @@ type DBHandler interface {
 	GetEmailBySessionId(sessionId string) (string, error)
 	GetUserByEamil(email string) *User
 
-	GetUserCourse() []*UserCourseRes
+	GetUserCourse() []*UserCourse
 	GetUserCourseById(id int) *UserCourse
-	GetUserCoursesByEmail(email string) []*UserCourse
-	AddUserCourse(data UserCourse) *UserCourse
+	// GetUserCoursesByEmail(email string) []*UserCourse
+	AddUserCourse(dateCourse string) *UserCourse
 	DeleteUserCourseById(id int) error
 	Close()
 }
