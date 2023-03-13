@@ -10,13 +10,9 @@ import (
 type UserCourse struct {
 	ID int `json:"id"`
 	// Email        string    `json:"email"`
-	DateCourse []CourseInfo `json:"dateCourse"`
+	DateCourse CourseInfo `json:"dateCourse"`
 	// QuestionList string    `json:"questionList"`
 	CreatedAt time.Time `json:"created_at`
-}
-
-type UserCourseRes struct {
-	DateCourse []CourseInfo `json:"dateCourse"`
 }
 
 type CourseInfo struct {
@@ -26,8 +22,8 @@ type CourseInfo struct {
 
 type Information struct {
 	Position struct {
-		Lat float64 `json:"lat"`
-		Lng float64 `json:"lng"`
+		Lat string `json:"lat"`
+		Lng string `json:"lng"`
 	} `json:"position"`
 	Content     string `json:"content"`
 	AddressName string `json:"address_name"`
@@ -115,7 +111,7 @@ func (s *pqHandler) AddUserCourse(dateCourse string) *UserCourse {
 		panic(err)
 	}
 	// Convert the JSON data to a slice of CourseInfo structs
-	var courseInfoSlice UserCourseRes
+	var courseInfoSlice UserCourse
 	err = json.Unmarshal([]byte(dateCourse), &courseInfoSlice)
 	if err != nil {
 		log.Println("Failed to unmarshal JSON data:", err)
