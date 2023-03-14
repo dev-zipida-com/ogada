@@ -184,7 +184,7 @@ func MakeHandler(dbConn string) *AppHandler {
 
 	a := &AppHandler{
 		Handler: n,
-		db:      model.NewDBHandler("postgresql://postgres:456123@localhost:5432/dataplanner?sslmode=disable"),
+		db:      model.NewDBHandler(dbConn),
 	}
 
 	r.HandleFunc("/auth/google/login", googleLoginHandler)
