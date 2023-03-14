@@ -385,6 +385,7 @@ const GetUsersAddress = () => {
 
                 userInput += tempoval;
                 lastInput = tempoval;
+
                 for (let i = 0; i < newUrls.length; i++) {
                     urls.push({
                         url: newUrls[i],
@@ -412,6 +413,19 @@ const GetUsersAddress = () => {
                 } else if (condition === "addRoute") {
                     urls = [];
                     handler.getAOneDateCourse();
+
+                    messages.current.push(
+                        {
+                            role: "assistant",
+                            content: lastChunks,
+                        },
+                        {
+                            role: "user",
+                            content:
+                                `Recommend only one more new dating course with the data under "---", based on the format I've already provided. You should only use the 5 shop information that newly added at this time, and the order should be exactly as I suggested.  \n---\n` +
+                                lastInput,
+                        }
+                    );
                 }
 
                 axios
@@ -569,10 +583,7 @@ const GetUsersAddress = () => {
                                                             },
                                                         }}
                                                         onClick={() => {
-                                                            if (
-                                                                // isCrawlDone &&
-                                                                crawledData
-                                                            ) {
+                                                            if (crawledData) {
                                                                 let menuData;
 
                                                                 menuData =
@@ -620,6 +631,9 @@ const GetUsersAddress = () => {
                                                                         width: "auto",
                                                                         height: "auto",
                                                                     }}
+                                                                    key={
+                                                                        marker.content
+                                                                    }
                                                                 >
                                                                     <div className="place_name">
                                                                         {
@@ -639,7 +653,12 @@ const GetUsersAddress = () => {
                                                                                 .phone
                                                                         }
                                                                     </div>
-                                                                    <div>
+                                                                    <div
+                                                                        key={
+                                                                            info[0]
+                                                                                .content
+                                                                        }
+                                                                    >
                                                                         {Object.keys(
                                                                             info[0]
                                                                                 .menu
@@ -776,12 +795,11 @@ const GetUsersAddress = () => {
                             setInfoState(false);
 
                             repeatCounter = 0;
-                            userInput = ``;
 
                             messages.current = [
                                 {
                                     role: "user",
-                                    content: defaultPrompt,
+                                    content: defaultPrompt + userInput,
                                 },
                             ];
 
@@ -1113,19 +1131,6 @@ const GetUsersAddress = () => {
                                             marginTop: "10px",
                                         }}
                                         onClick={() => {
-                                            messages.current.push(
-                                                {
-                                                    role: "assistant",
-                                                    content: lastChunks,
-                                                },
-                                                {
-                                                    role: "user",
-                                                    content:
-                                                        `Recommend only one more new dating course with the data under "---", based on the format I've already provided. You should only use the 5 shop information that newly added at this time, and the order should be exactly as I suggested.  \n---\n` +
-                                                        lastInput,
-                                                }
-                                            );
-
                                             repeatCounter = 0;
                                             setFollowupQuestion("");
                                             setIsTalkingStart(false);
