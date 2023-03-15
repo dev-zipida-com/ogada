@@ -1,1245 +1,591 @@
+/* eslint-disable @next/next/no-img-element */
 // this is a GET request to get the address of the user using Daum Postcode API
 
 import React, { useRef, useState, useEffect } from "react";
 import DaumPostcode from "react-daum-postcode";
 import { Map, MapMarker, Polyline } from "react-kakao-maps-sdk";
 import axios from "axios";
-import Script from "next/script";
 
-const callKaKaoApi = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAOMAP_APPKEY}&libraries=services,clusterer&autoload=false`;
+import ChatGpt from "@/libs/chat-gpt";
+import { PlaceService } from "@/libs/kakao-maps";
+import KakaoMap from "./KakaoMap";
 
-const responseLanguage = "English";
-
-const defaultPrompt = `
-    Describe the topic below "---"
-    Adhere to the options below.
-    Tone: Friendly
-    Style: Detailed
-    Reader level: College student
-    Length: 1200~1300 characters
-    Perspective: Date planner
-    Format : Output as a diagram
-    Answer me in ${responseLanguage}
-    ---
-    Let's say you're my date course planner. I'll give you three date courses. I want you to write a recommendation on why each date course is good.
-    Follow these conditions.
-    1. Write a explanation of why you suggested each of the date courses. and each of the date courses that you suggested starts with the number like 1, 2, 3, and diagram. Next to each number, put a 1-2 word summary of why you recommended that dating course.
-    2. the shops name must be written in the same way as the shop name in the list below. for example, "X1" is correct, but "x1 branch" is wrong.
-    3. A Each date course that you suggest must have 5 shops. You should only use the shop informations that I gave you, and the order should be exactly as I suggested.
-    4. the shop names must be written as that i gave to you, the Korean name of the shop.
-    5. Anything above the sentence "and the shops are as follows:" should not be shown to me again.
-    6. The very last line of text should end with "If there is anything else I can help you with, please enter it in the text box below".
-    7. You must follow the format below.
-        for example:
-                1. Title
-                    1. the shop name 1 (category)
-                    2. the shop name 2 (category)
-                    3. the shop name 3 (category)
-                    4. the shop name 4 (category)
-                    5. the shop name 5 (category)
-
-                    explain about your suggestion of this date course.
-
-                2. Title
-                    1. the shop name 1 (category)
-                    2. the shop name 2 (category)
-                    3. the shop name 3 (category)
-                    4. the shop name 4 (category)
-                    5. the shop name 5 (category)
-
-                    explain about your suggestion of this date course.
-
-                3. Title
-                    1. the shop name 1 (category)
-                    2. the shop name 2 (category)
-                    3. the shop name 3 (category)
-                    4. the shop name 4 (category)
-                    5. the shop name 5 (category)
-
-                    explain about your suggestion of this date course.
-
-                If there is anything else I can help you with, please enter it in the text box below.
-
-    and the shops are as follows:
-
-    `;
-
-let userInput = ``;
-let repeatCounter = 0;
-let lastInput = "";
-let urls = [];
-
-function uniqueRandomNumberSelector(list, resultNum) {
-    let result = [];
-    while (result.length < resultNum) {
-        let random = Math.floor(Math.random() * (list.length - 1));
-        if (!result.includes(random)) {
-            result.push(random);
-        }
-    }
-    return result;
+function suffleArray(list) {
+  return [...list].sort(() => Math.random() - 0.5);
 }
 
+const sufflePlaceInfoList = (placeInfoList) => {
+  let { culture, cafe, restaurant } = placeInfoList.reduce(
+    (acc, place) => {
+      if (place.category_group_name === "문화시설") {
+        acc.culture.push(place);
+      } else if (place.category_group_name === "음식점") {
+        acc.restaurant.push(place);
+      } else if (place.category_group_name === "카페") {
+        acc.cafe.push(place);
+      }
+      return acc;
+    },
+    { culture: [], cafe: [], restaurant: [] }
+  );
+
+  const suffledCulture = suffleArray(culture);
+  const suffledRestaurant = suffleArray(restaurant);
+  const suffledCafe = suffleArray(cafe);
+
+  const suffledPlaceList = [
+    suffledCulture[0],
+    suffledRestaurant[0],
+    suffledCafe[0],
+    suffledCulture[1],
+    suffledRestaurant[1],
+  ];
+
+  const markers = [];
+  const urls = [];
+  const prompts = [];
+
+  suffledPlaceList.forEach((place, i) => {
+    markers.push({
+      position: {
+        lat: place.y,
+        lng: place.x,
+      },
+      content: place.place_name,
+      imageUrl: `assets/images/bluestar${i + 1}.png`,
+      address_name: place.road_address_name,
+      phone: place.phone,
+    });
+
+    urls.push({ url: place.place_url });
+    prompts.push(
+      `- shop name: ${place.place_name}, category: ${place.category_name}.`
+    );
+  });
+
+  return { markers, urls, prompts };
+};
+
 const GetUsersAddress = () => {
-    const [openPostcode, setOpenPostcode] = useState(false);
-    const [address, setAddress] = useState("서울 강남구 강남대로156길 16");
-    const [lat, setLat] = useState(37.5181062174467);
-    const [lng, setLng] = useState(127.020528914698);
-    const [showACenterMarker, setShowACenterMarker] = useState(true);
-    const [chatDone, setChatDone] = useState(false);
-    const [chunks, setChunks] = useState("");
-    const [lastChunks, setLastChunks] = useState("");
+  const { current: chatGpt } = useRef(new ChatGpt());
 
-    const [followupQuestion, setFollowupQuestion] = useState("");
-    const [myCourse, setMyCourse] = useState("");
-    const [markersOfThisRoute, setMarkersOfThisRoute] = useState([]);
+  const [isDataReady, setIsDataReady] = useState(false);
+  const [placeInfoList, setPlaceInfoList] = useState([]);
 
-    const [isLoading, setIsLoading] = useState(false);
-    const [isTalkingStart, setIsTalkingStart] = useState(false);
-    const [isSearching, setIsSearching] = useState(false);
+  const [openPostcode, setOpenPostcode] = useState(false);
+  const [location, setLocation] = useState({
+    address: "서울 강남구 강남대로 156길 16",
+    lat: 37.5181062174467,
+    lng: 127.020528914698,
+  });
 
-    const [info, setInfo] = useState("");
-    const [infoState, setInfoState] = useState(false);
+  const [map, setMap] = useState();
 
-    const [markers, setMarkers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [chatDone, setChatDone] = useState(false);
+  const [chunks, setChunks] = useState("");
 
-    const [recommendedRoutes, setRecommendedRoutes] = useState([]);
-    const [recommendedRoutesMarkers, setRecommendedRoutesMarkers] = useState(
-        []
-    );
-    const [isCrawlDone, setIsCrawlDone] = useState(false);
-    const [crawledData, setCrawledData] = useState([]);
+  const [recommendedRoutesMarkers, setRecommendedRoutesMarkers] = useState([]);
 
-    const [map, setMap] = useState("");
-    const [isDataReady, setIsDataReady] = useState(false);
-    const placeInfoList = useRef([]);
+  const [showACenterMarker, setShowACenterMarker] = useState(true);
+  const [selectedMarker, setSelecterMarker] = useState(null);
+  const [markersOfThisRoute, setMarkersOfThisRoute] = useState([]);
 
-    const [onCourseBtn, setOnCourseBtn] = useState([]);
+  const [myCourse, setMyCourse] = useState("");
 
-    const containerRef = useRef();
+  const [isCrawlDone, setIsCrawlDone] = useState(false);
+  const [crawledData, setCrawledData] = useState([]);
 
-    let messages = useRef([
+  const [followupQuestion, setFollowupQuestion] = useState("");
+  const [onCourseBtn, setOnCourseBtn] = useState([]);
+
+  const containerRef = useRef();
+
+  useEffect(() => {
+    handler.handleCompletePostCode(location.address);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    containerRef.current.scrollIntoView({
+      // behavior: "smooth",
+      block: "end",
+      inline: "nearest",
+    });
+  }, [chunks]);
+
+  const handler = {
+    handleDrawRoute: (routesMarkers) => {
+      if (!isDataReady) return;
+
+      const bounds = new kakao.maps.LatLngBounds();
+      routesMarkers.forEach((marker) => {
+        bounds.extend(new kakao.maps.LatLng(marker.y, marker.x));
+      });
+
+      setMarkersOfThisRoute(routesMarkers);
+
+      setShowACenterMarker(false);
+
+      containerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    },
+    handleCompletePostCode: async (address) => {
+      setOpenPostcode(false);
+
+      setIsDataReady(false);
+
+      const { lat, lng } = await axios
+        .post("/api/user/map/getUsersPosition", {
+          address,
+        })
+        .then((res) => res.data);
+
+      setLocation({ address, lat, lng });
+
+      const placeInfoPlist = await fetchPlaceInfoList(address);
+      setPlaceInfoList(placeInfoPlist.flat());
+
+      setIsDataReady(true);
+    },
+    handleChangeFollowupQuestion: (e) => {
+      setFollowupQuestion(e.target.value);
+    },
+    handleRemoveAOneCourse: (index) => {
+      if (recommendedRoutesMarkers.length === 1) {
+        alert("최소 한 개의 코스를 선택해주세요.");
+        return;
+      }
+
+      setRecommendedRoutesMarkers((prev) => prev.filter((_, i) => i !== index));
+    },
+    handleSaveMyCourse: async (routesMarkers) => {
+      setMyCourse(routesMarkers.content);
+
+      await axios.post(
+        "https://brown-flies-flow-121-135-160-141.loca.lt/course/save",
         {
-            role: "user",
-            content: userInput,
-        },
-    ]);
-
-    useEffect(() => {
-        containerRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-            inline: "nearest",
-        });
-    }, [chunks]);
-
-    useEffect(() => {
-        if (crawledData === [] || null || undefined) return;
-
-        setIsCrawlDone(true);
-    }, [crawledData]);
-
-    useEffect(() => {
-        if (!isSearching) return;
-
-        placeInfoList.current = [];
-
-        const keywords = [
-            address + " 주변 맛집",
-            address + " 주변 카페",
-
-            address + " 주변 영화관",
-            address + " 주변 미술관",
-            address + " 주변 박물관",
-            address + " 주변 공원",
-            address + " 주변 공연장",
-        ];
-
-        setIsDataReady(false);
-        userInput = ``;
-        const ps = new window.kakao.maps.services.Places();
-        for (let i = 0; i < keywords.length; i++) {
-            ps.keywordSearch(keywords[i], (data, status, pagination) => {
-                if (status === window.kakao.maps.services.Status.OK) {
-                    let eachDataLen =
-                        data.length < (i < 2 ? 14 : 6)
-                            ? data.length
-                            : i < 2
-                            ? 14
-                            : 6;
-                    for (let j = 0; j < eachDataLen; j++) {
-                        if (data[j].place_name.includes("휴업")) {
-                            continue;
-                        }
-                        placeInfoList.current.push(data[j]);
-                    }
-                }
-
-                if (i === keywords.length - 1) {
-                    setIsDataReady(true);
-                }
-            });
+          dateCourse: {
+            course: routesMarkers.map((marker) => marker.content).join(" -> "),
+            information: routesMarkers.map((marker) => {
+              return {
+                position: {
+                  lat: marker.position.lat,
+                  lng: marker.position.lng,
+                },
+                content: marker.content,
+                address_name: marker.address_name,
+                phone: marker.phone,
+              };
+            }),
+          },
         }
-    }, [isSearching]);
+      );
 
-    const handler = {
-        onClick: () => {
-            setOpenPostcode(!openPostcode);
-        },
+      alert("코스가 저장되었습니다.");
+    },
+  };
 
-        onDrawRoute: () => {
-            if (!isDataReady) return;
+  const fetchPlaceInfoList = async (address) => {
+    if (!address) {
+      return Promise.resolve([]);
+    }
 
-            const markers = [...markersOfThisRoute];
-            const bounds = new kakao.maps.LatLngBounds();
-            for (let i = 0; i < markers.length; i++) {
-                bounds.extend(
-                    new kakao.maps.LatLng(markers[i].y, markers[i].x)
-                );
-            }
+    const KEYWORDS = [
+      "맛집",
+      "카페",
+      "영화관",
+      "미술관",
+      "박물관",
+      "공원",
+      "공연장",
+    ];
 
-            setShowACenterMarker(false);
-        },
+    try {
+      const placeService = new PlaceService(map);
 
-        onComplete: async (data) => {
-            setAddress(data?.address);
+      return Promise.all(
+        KEYWORDS.map(async (keyword, i) => {
+          const placeList = await placeService.search(
+            `${address} 주변 ${keyword}`
+          );
 
-            const { lat, lng } = await axios
-                .post("/api/user/map/getUsersPosition", {
-                    address: data.address,
-                })
-                .then((res) => res.data);
+          const limit = i < 2 ? 14 : 6;
+          const eachDataLen = Math.min(placeList.length, limit);
 
-            setLat(lat);
-            setLng(lng);
+          return placeList
+            .slice(0, eachDataLen)
+            .filter((item) => !item.place_name.includes("휴업"));
+        })
+      );
+    } catch (e) {
+      console.error(`${e}`);
+      return Promise.resolve([]);
+    }
+  };
 
-            setOpenPostcode(false);
-            setIsSearching(!isSearching);
-            urls = [];
-        },
+  const talkToChatGPT = async (condition) => {
+    if (!isDataReady) {
+      return;
+    }
 
-        onChange: (e) => {
-            setFollowupQuestion(e.target.value);
-        },
+    let newMarkers = [];
+    let placeUrls = [];
+    let userInputs = [];
 
-        removeAOneCourse: (index) => {
-            if (recommendedRoutes.length === 1) {
-                alert("최소 한 개의 코스를 선택해주세요.");
-                return;
-            }
-            const prevRoutes = [...recommendedRoutes];
-            const prevMarkers = [...recommendedRoutesMarkers];
-            const prebBtns = [...onCourseBtn];
+    if (condition === "newRoutes") {
+      chatGpt.reset();
+      setChunks("");
 
-            for (let i = 0; i < prevRoutes.length; i++) {
-                if (i === index) {
-                    prevRoutes.splice(i, 1);
-                    prevMarkers.splice(i, 1);
-                    prebBtns.splice(i, 1);
-                }
-            }
+      for (let i = 0; i < 3; i += 1) {
+        const place = sufflePlaceInfoList(placeInfoList);
 
-            setRecommendedRoutes(prevRoutes);
-            setRecommendedRoutesMarkers(prevMarkers);
-            setOnCourseBtn(prebBtns);
-        },
+        newMarkers.push(place.markers);
+        placeUrls.push(...place.urls);
+        userInputs.push(...place.prompts);
+      }
 
-        getAOneDateCourse: () => {
-            if (isDataReady) {
-                let [culture, cafe, restaurant] = [[], [], []];
-                for (let i = 0; i < placeInfoList.current.length; i++) {
-                    if (
-                        placeInfoList.current[i].category_group_name ===
-                        "문화시설"
-                    ) {
-                        culture.push(placeInfoList.current[i]);
-                    } else if (
-                        placeInfoList.current[i].category_group_name ===
-                        "음식점"
-                    ) {
-                        restaurant.push(placeInfoList.current[i]);
-                    } else if (
-                        placeInfoList.current[i].category_group_name === "카페"
-                    ) {
-                        cafe.push(placeInfoList.current[i]);
-                    }
-                }
+      setRecommendedRoutesMarkers(newMarkers);
+      setOnCourseBtn([false, false, false]);
 
-                const cultureSelectedNums = uniqueRandomNumberSelector(
-                    culture,
-                    2
-                );
-                const cafeSelectedNums = uniqueRandomNumberSelector(cafe, 1);
-                const restaurantSelectedNums = uniqueRandomNumberSelector(
-                    restaurant,
-                    2
-                );
+      chatGpt.setDefaultMessage(userInputs.join("\n"));
+    } else if (condition === "addRoute") {
+      const place = sufflePlaceInfoList(placeInfoList);
 
-                const newRoute = [
-                    culture[cultureSelectedNums[0]].place_name,
-                    restaurant[restaurantSelectedNums[0]].place_name,
-                    cafe[cafeSelectedNums[0]].place_name,
-                    culture[cultureSelectedNums[1]].place_name,
-                    restaurant[restaurantSelectedNums[1]].place_name,
-                ];
+      newMarkers = place.markers;
+      placeUrls = place.urls;
+      userInputs = place.prompts;
 
-                const newUrls = [
-                    culture[cultureSelectedNums[0]].place_url,
-                    restaurant[restaurantSelectedNums[0]].place_url,
-                    cafe[cafeSelectedNums[0]].place_url,
-                    culture[cultureSelectedNums[1]].place_url,
-                    restaurant[restaurantSelectedNums[1]].place_url,
-                ];
+      setRecommendedRoutesMarkers((prev) => [...prev, newMarkers]);
+      setOnCourseBtn((prev) => [...prev, false]);
 
-                const newMarkers = [
-                    {
-                        position: {
-                            lat: culture[cultureSelectedNums[0]].y,
-                            lng: culture[cultureSelectedNums[0]].x,
-                        },
-                        content: culture[cultureSelectedNums[0]].place_name,
-                        imageUrl: "assets/images/bluestar1.png",
-                        address_name:
-                            culture[cultureSelectedNums[0]].road_address_name,
-                        phone: culture[cultureSelectedNums[0]].phone,
-                    },
-                    {
-                        position: {
-                            lat: restaurant[restaurantSelectedNums[0]].y,
-                            lng: restaurant[restaurantSelectedNums[0]].x,
-                        },
-                        content:
-                            restaurant[restaurantSelectedNums[0]].place_name,
+      chatGpt.addRecomandationMessage(userInputs.join("\n"));
+    } else if (condition === "askQuestion") {
+      chatGpt.addRecomandationMessage(followupQuestion);
+    }
 
-                        imageUrl: "assets/images/bluestar2.png",
-                        address_name:
-                            culture[restaurantSelectedNums[0]]
-                                .road_address_name,
-                        phone: culture[restaurantSelectedNums[0]].phone,
-                    },
-                    {
-                        position: {
-                            lat: cafe[cafeSelectedNums[0]].y,
-                            lng: cafe[cafeSelectedNums[0]].x,
-                        },
-                        content: cafe[cafeSelectedNums[0]].place_name,
-                        imageUrl: "assets/images/bluestar3.png",
-                        address_name:
-                            culture[cafeSelectedNums[0]].road_address_name,
-                        phone: culture[cafeSelectedNums[0]].phone,
-                    },
-                    {
-                        position: {
-                            lat: culture[cultureSelectedNums[1]].y,
-                            lng: culture[cultureSelectedNums[1]].x,
-                        },
-                        content: culture[cultureSelectedNums[1]].place_name,
-                        imageUrl: "assets/images/bluestar4.png",
-                        address_name:
-                            culture[cultureSelectedNums[1]].road_address_name,
-                        phone: culture[cultureSelectedNums[1]].phone,
-                    },
-                    {
-                        position: {
-                            lat: restaurant[restaurantSelectedNums[1]].y,
-                            lng: restaurant[restaurantSelectedNums[1]].x,
-                        },
-                        content:
-                            restaurant[restaurantSelectedNums[1]].place_name,
-                        imageUrl: "assets/images/bluestar5.png",
-                        address_name:
-                            culture[restaurantSelectedNums[1]]
-                                .road_address_name,
-                        phone: culture[restaurantSelectedNums[1]].phone,
-                    },
-                ];
+    /////////////////////////// 1. start crawling ///////////////////////////
+    setIsCrawlDone(false);
+    setCrawledData(null);
+    axios
+      .post("https://brown-flies-flow-121-135-160-141.loca.lt/crawling", {
+        data: placeUrls,
+      })
+      .then((res) => {
+        setCrawledData((prev) => [...prev, ...res.data]);
+        setIsCrawlDone(true);
+        return res;
+      })
+      .catch(console.error);
 
-                const tempoval = `
-                        A course :\n
-                            - shop name: ${
-                                culture[cultureSelectedNums[0]].place_name
-                            }, category: ${
-                    culture[cultureSelectedNums[0]].category_name
-                }.\n
-                            - shop name: ${
-                                restaurant[restaurantSelectedNums[0]].place_name
-                            }, category: ${
-                    restaurant[restaurantSelectedNums[0]].category_name
-                }.\n
-                            - shop name: ${
-                                cafe[cafeSelectedNums[0]].place_name
-                            }, category: ${
-                    cafe[cafeSelectedNums[0]].category_name
-                }.\n
-                            - shop name: ${
-                                culture[cultureSelectedNums[1]].place_name
-                            }, category: ${
-                    culture[cultureSelectedNums[1]].category_name
-                }.\n
-                            - shop name: ${
-                                restaurant[restaurantSelectedNums[1]].place_name
-                            }, category: ${
-                    restaurant[restaurantSelectedNums[1]].category_name
-                }.\n
-                    `;
+    /////////////////////////// 2. ask question ///////////////////////////
+    setIsLoading(true);
 
-                userInput += tempoval;
-                lastInput = tempoval;
+    const decoder = new TextDecoder("utf-8");
+    const answer = await chatGpt.askQuestion();
 
-                for (let i = 0; i < newUrls.length; i++) {
-                    urls.push({
-                        url: newUrls[i],
-                    });
-                }
+    setIsLoading(false);
 
-                setRecommendedRoutes((prev) => [...prev, newRoute]);
-                setRecommendedRoutesMarkers((prev) => [...prev, newMarkers]);
-                setOnCourseBtn((prev) => [...prev, false]);
-            }
-        },
+    /////////////////////////// 3. read answer ///////////////////////////
+    setChatDone(false);
 
-        getDateCoursesWithDefaultNums: (defaultNums) => {
-            for (let i = 0; i < defaultNums; i++) {
-                handler.getAOneDateCourse();
-            }
-        },
+    let currentChunk = "";
+    while (true) {
+      const { value, done } = await answer.read();
+      if (done) {
+        setChatDone(true);
+        setChunks((prev) => prev + "\n\n");
+        chatGpt.addAssistantMessage(currentChunk);
+        break;
+      }
 
-        talkToChatGPT: async (condition) => {
-            if (isDataReady) {
-                setIsLoading(true);
-                if (condition === "newRoutes") {
-                    urls = [];
-                    handler.getDateCoursesWithDefaultNums(3);
-                } else if (condition === "addRoute") {
-                    urls = [];
-                    handler.getAOneDateCourse();
+      const text = decoder.decode(value).split(`\n\n`).at(0);
 
-                    messages.current.push(
-                        {
-                            role: "assistant",
-                            content: lastChunks,
-                        },
-                        {
-                            role: "user",
-                            content:
-                                `Recommend only one more new dating course with the data under "---", based on the format I've already provided. You should only use the 5 shop information that newly added at this time, and the order should be exactly as I suggested.  \n---\n` +
-                                lastInput,
-                        }
-                    );
-                }
+      const data = text.split("data: ")[1];
+      if (data === "[DONE]") {
+        return;
+      }
 
-                axios
-                    .post(
-                        "https://brown-flies-flow-121-135-160-141.loca.lt/crawling",
-                        {
-                            data: urls,
-                        }
-                    )
-                    .then((res) => {
-                        setCrawledData([...crawledData, ...res.data]);
-                        return;
-                    });
+      const response = JSON.parse(data);
+      const content = response.choices?.[0]?.delta?.content;
 
-                const config = {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-3.5-turbo",
-                        messages:
-                            messages.current.length === 1
-                                ? [
-                                      {
-                                          role: "user",
-                                          content: defaultPrompt + userInput,
-                                      },
-                                  ]
-                                : messages.current,
+      if (content && content !== "\n\n") {
+        setChunks((prev) => prev + words);
+        currentChunk += content;
+      }
+    }
+  };
 
-                        stream: true,
-                        temperature: 0.5,
-                    }),
-                };
+  return (
+    <>
+      <div className="wrapper" ref={containerRef}>
+        <section>
+          <button
+            className="default-btn"
+            style={{ width: "130px", height: "40px", fontSize: "18px" }}
+            onClick={() => {
+              setOpenPostcode(!openPostcode);
+            }}
+          >
+            주소검색
+          </button>
+          {openPostcode && (
+            <DaumPostcode
+              onComplete={(data) => {
+                handler.handleCompletePostCode(data.address);
+                setOpenPostcode(false);
+              }}
+              autoClose={false}
+              defaultQuery="강남구 강남대로 156길 16"
+            />
+          )}
+        </section>
+        <section>
+          <p>주소 : {location.address}</p>
+          <KakaoMap
+            center={{ lat: location.lat, lng: location.lng }}
+            onCreate={(map) => setMap(map)}
+            showACenterMarker={showACenterMarker}
+            markers={markersOfThisRoute}
+            selectedMarker={selectedMarker}
+            onMarkerClick={(marker) => {
+              const menuData = crawledData?.find(
+                (v) => v.title === marker.content
+              );
 
-                await fetch(
-                    "https://api.openai.com/v1/chat/completions",
-                    config
-                )
-                    .then((r) => {
-                        const reader = r.body.getReader();
-                        const decoder = new TextDecoder("utf-8");
-                        setIsLoading(false);
-                        setIsTalkingStart(true);
-                        return reader
-                            .read()
-                            .then(function processText({ done, value }) {
-                                if (done) {
-                                    setChatDone(true);
-                                    setChunks((prev) => prev + `\n\n`);
-                                    return;
-                                }
+              setSelecterMarker({
+                content: marker.content,
+                address_name: marker.address_name,
+                phone: marker.phone,
+                menu: menuData?.menu,
+                open: menuData?.opening_time,
+              });
+            }}
+          />
+        </section>
+        <section>
+          <button
+            className="default-btn"
+            style={{ width: "180px", height: "40px", fontSize: "18px" }}
+            onClick={() => {
+              setMarkersOfThisRoute([]);
+              setSelecterMarker(null);
+              setShowACenterMarker(true);
 
-                                let decodedTextList = decoder
-                                    .decode(value)
-                                    .split(`\n\n`)
-                                    .slice(0, -1);
+              talkToChatGPT("newRoutes");
+            }}
+          >
+            데이트 코스 추천받기
+          </button>
+          <div className="result-box">
+            {isLoading ? (
+              <img
+                src="assets/images/loading.gif"
+                alt="loading..."
+                style={{ width: "40px", height: "40px" }}
+              />
+            ) : (
+              chunks || (
+                <img
+                  style={{ width: "40px", height: "40px" }}
+                  alt="listening..."
+                  src="assets/images/listeningimage.png"
+                />
+              )
+            )}
+          </div>
+        </section>
+        {!isCrawlDone && (
+          <section
+            style={{
+              width: "458px",
+              height: "30px",
+              color: "gray",
+              fontSize: "12px",
+              textAlign: "center",
+              marginLeft: "5px",
+              marginTop: "10px",
+            }}
+          >
+            동적 크롤링 중...
+          </section>
+        )}
+        {chatDone && (
+          <>
+            <section>
+              <div
+                style={{
+                  width: "458px",
+                  height: "30px",
+                  border: "none",
+                  fontSize: "18px",
+                  textAlign: "center",
+                  marginLeft: "5px",
+                  marginTop: "10px",
+                }}
+              >
+                추천 코스
+              </div>
+              {recommendedRoutesMarkers.map((routesMarkers, index) => {
+                return (
+                  <div key={index}>
+                    <input
+                      className="course-option"
+                      type={"text"}
+                      style={{ cursor: "pointer" }}
+                      readOnly
+                      value={routesMarkers?.map((v) => v.content).join(" -> ")}
+                      onClick={() => {
+                        setOnCourseBtn((prev) =>
+                          prev.map((open, i) => (i === index ? !open : open))
+                        );
+                      }}
+                    />
 
-                                for (
-                                    let i = 0;
-                                    i < decodedTextList.length;
-                                    i++
-                                ) {
-                                    const content =
-                                        decodedTextList[i].split("data: ")[1];
-                                    if (content === "[DONE]") {
-                                        continue;
-                                    }
-
-                                    const response = JSON.parse(content);
-
-                                    if (response?.choices?.length) {
-                                        const delta = response.choices[0].delta;
-                                        if (
-                                            delta?.content &&
-                                            delta?.content !== "\n\n"
-                                        ) {
-                                            setChunks(
-                                                (prev) => prev + delta.content
-                                            );
-
-                                            setLastChunks(
-                                                (prev) => prev + delta.content
-                                            );
-                                        }
-                                    }
-                                }
-                                return reader.read().then(processText);
-                            });
-                    })
-                    .catch((err) => console.log(err));
-            }
-        },
-    };
-
-    return (
-        <>
-            <div className="addr" ref={containerRef}>
-                <div>
-                    <button
+                    {onCourseBtn[index] && (
+                      <div
                         style={{
-                            width: "130px",
-                            height: "40px",
-                            backgroundColor: "white",
-                            border: "1px solid black",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontSize: "18px",
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          width: "450px",
+                          marginLeft: "10px",
                         }}
-                        onClick={() => handler.onClick()}
-                    >
-                        주소검색
-                    </button>
-                    {openPostcode && (
-                        <DaumPostcode
-                            onComplete={(data) => handler.onComplete(data)}
-                            autoClose={false}
-                            defaultQuery="강남구 강남대로 156길 16"
-                        />
-                    )}
-                </div>
-                {
-                    <div>
-                        <p>주소 : {address}</p>
-                        <div>
-                            <>
-                                <Script
-                                    src={callKaKaoApi}
-                                    strategy="beforeInteractive"
-                                />
-                                <Map
-                                    center={{ lat, lng }}
-                                    style={{ width: "420px", height: "420px" }}
-                                    level={3}
-                                    onCreate={setMap}
-                                >
-                                    {!showACenterMarker &&
-                                        markersOfThisRoute &&
-                                        markersOfThisRoute.map(
-                                            (marker, index) => (
-                                                <>
-                                                    <MapMarker
-                                                        key={index}
-                                                        position={
-                                                            marker.position
-                                                        }
-                                                        content={marker.content}
-                                                        image={{
-                                                            src: marker.imageUrl,
-                                                            size: {
-                                                                width: 33,
-                                                                height: 33,
-                                                            },
-                                                        }}
-                                                        onClick={() => {
-                                                            if (crawledData) {
-                                                                let menuData;
-
-                                                                menuData =
-                                                                    crawledData.filter(
-                                                                        (v) =>
-                                                                            v.title ===
-                                                                            marker.content
-                                                                    );
-
-                                                                if (menuData) {
-                                                                    let temp = [
-                                                                        {
-                                                                            content:
-                                                                                marker.content,
-                                                                            address_name:
-                                                                                marker.address_name,
-                                                                            phone: marker.phone,
-                                                                            menu: menuData[0]
-                                                                                ? menuData[0]
-                                                                                      .menu
-                                                                                : "",
-                                                                            open: menuData[0]
-                                                                                ? menuData[0]
-                                                                                      .opening_time
-                                                                                : "",
-                                                                        },
-                                                                    ];
-                                                                    setInfo(
-                                                                        temp
-                                                                    );
-
-                                                                    setInfoState(
-                                                                        !infoState
-                                                                    );
-                                                                }
-                                                            }
-                                                        }}
-                                                    >
-                                                        {info !== null &&
-                                                            infoState &&
-                                                            info[0].content ===
-                                                                marker.content && (
-                                                                <div
-                                                                    style={{
-                                                                        width: "auto",
-                                                                        height: "auto",
-                                                                    }}
-                                                                    key={
-                                                                        marker.content
-                                                                    }
-                                                                >
-                                                                    <div className="place_name">
-                                                                        {
-                                                                            info[0]
-                                                                                .content
-                                                                        }
-                                                                    </div>
-                                                                    <div className="address">
-                                                                        {
-                                                                            info[0]
-                                                                                .address_name
-                                                                        }
-                                                                    </div>
-                                                                    <div className="phone">
-                                                                        {
-                                                                            info[0]
-                                                                                .phone
-                                                                        }
-                                                                    </div>
-                                                                    <div
-                                                                        key={
-                                                                            info[0]
-                                                                                .content
-                                                                        }
-                                                                    >
-                                                                        {Object.keys(
-                                                                            info[0]
-                                                                                .menu
-                                                                        ).map(
-                                                                            (
-                                                                                menuName
-                                                                            ) => {
-                                                                                return (
-                                                                                    <div>
-                                                                                        {
-                                                                                            menuName
-                                                                                        }
-
-                                                                                        ,{" "}
-                                                                                        {
-                                                                                            info[0]
-                                                                                                .menu[
-                                                                                                menuName
-                                                                                            ]
-                                                                                        }{" "}
-                                                                                        ₩
-                                                                                    </div>
-                                                                                );
-                                                                            }
-                                                                        )}
-                                                                    </div>
-                                                                    <div>
-                                                                        {info[0]
-                                                                            .open
-                                                                            ? info[0]
-                                                                                  .open
-                                                                            : "영업시간 정보 없음"}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                    </MapMarker>
-                                                    <Polyline
-                                                        path={[
-                                                            [
-                                                                {
-                                                                    lat: markersOfThisRoute[0]
-                                                                        .position
-                                                                        .lat,
-                                                                    lng: markersOfThisRoute[0]
-                                                                        .position
-                                                                        .lng,
-                                                                },
-                                                                {
-                                                                    lat: markersOfThisRoute[1]
-                                                                        .position
-                                                                        .lat,
-                                                                    lng: markersOfThisRoute[1]
-                                                                        .position
-                                                                        .lng,
-                                                                },
-                                                                {
-                                                                    lat: markersOfThisRoute[2]
-                                                                        .position
-                                                                        .lat,
-                                                                    lng: markersOfThisRoute[2]
-                                                                        .position
-                                                                        .lng,
-                                                                },
-                                                                {
-                                                                    lat: markersOfThisRoute[3]
-                                                                        .position
-                                                                        .lat,
-                                                                    lng: markersOfThisRoute[3]
-                                                                        .position
-                                                                        .lng,
-                                                                },
-                                                                {
-                                                                    lat: markersOfThisRoute[4]
-                                                                        .position
-                                                                        .lat,
-                                                                    lng: markersOfThisRoute[4]
-                                                                        .position
-                                                                        .lng,
-                                                                },
-                                                            ],
-                                                        ]}
-                                                        strokeColor="#1E90FF"
-                                                        strokeOpacity={0.1}
-                                                        strokeWeight={3}
-                                                    />
-                                                </>
-                                            )
-                                        )}
-
-                                    {showACenterMarker && (
-                                        <MapMarker
-                                            position={{ lat, lng }}
-                                            image={{
-                                                src: "assets/images/bluestar.png",
-                                                size: {
-                                                    width: 33,
-                                                    height: 33,
-                                                },
-                                            }}
-                                        ></MapMarker>
-                                    )}
-                                </Map>
-                            </>
-                        </div>
-                    </div>
-                }
-
-                <p></p>
-                {
-                    <button
-                        style={{
-                            width: "180px",
-                            height: "40px",
-                            backgroundColor: "white",
-                            border: "1px solid black",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                        }}
-                        onClick={() => {
-                            setChunks("");
-                            setChatDone(false);
-                            setFollowupQuestion("");
-                            setIsTalkingStart(false);
-                            setMarkers([]);
-                            setRecommendedRoutes([]);
-                            setRecommendedRoutesMarkers([]);
-                            setMarkersOfThisRoute([]);
-                            setOnCourseBtn([]);
-                            setLastChunks("");
-                            setInfo(null);
-                            setCrawledData(null);
-                            setShowACenterMarker(true);
-                            setInfoState(false);
-
-                            repeatCounter = 0;
-
-                            messages.current = [
-                                {
-                                    role: "user",
-                                    content: defaultPrompt + userInput,
-                                },
-                            ];
-
-                            handler.talkToChatGPT("newRoutes");
-                        }}
-                    >
-                        데이트 코스 추천받기
-                    </button>
-                }
-                <p></p>
-                <div
-                    className="resultBox"
-                    style={{
-                        width: "450px",
-                        whiteSpace: "pre-wrap",
-                    }}
-                >
-                    {isLoading ? (
-                        <img
-                            src="assets/images/loading.gif"
-                            alt="loading..."
-                            style={{ width: "40px", height: "40px" }}
-                        ></img>
-                    ) : isTalkingStart ? (
-                        chunks
-                    ) : (
-                        <img
-                            style={{ width: "40px", height: "40px" }}
-                            src="assets/images/listeningimage.png"
-                        ></img>
-                    )}
-                </div>
-                {chatDone && (
-                    <div>
-                        <div>
-                            {!isCrawlDone && (
-                                <div
-                                    style={{
-                                        width: "458px",
-                                        height: "30px",
-                                        color: "gray",
-                                        fontSize: "12px",
-                                        textAlign: "center",
-                                        marginLeft: "5px",
-                                        marginTop: "10px",
-                                    }}
-                                >
-                                    동적 크롤링 중...
-                                </div>
-                            )}
-                            <div
-                                style={{
-                                    width: "458px",
-                                    height: "30px",
-                                    border: "none",
-                                    fontSize: "18px",
-                                    textAlign: "center",
-                                    marginLeft: "5px",
-                                    marginTop: "10px",
-                                }}
-                            >
-                                추천 코스
-                            </div>
-                            <div>
-                                {recommendedRoutes.map((route, index) => (
-                                    <div key={index}>
-                                        <input
-                                            className="courseOptions"
-                                            type={"text"}
-                                            style={{ cursor: "pointer" }}
-                                            readOnly
-                                            value={
-                                                route
-                                                    ? `${route[0]} > ${route[1]} > ${route[2]} > ${route[3]} > ${route[4]}`
-                                                    : null
-                                            }
-                                            onClick={() => {
-                                                let temp = [...onCourseBtn];
-                                                temp[index] = !temp[index];
-                                                setOnCourseBtn(temp);
-                                            }}
-                                        />
-
-                                        {onCourseBtn[index] && (
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    flexDirection: "row",
-                                                    justifyContent: "center",
-                                                    width: "450px",
-                                                    marginLeft: "10px",
-                                                }}
-                                            >
-                                                <button
-                                                    className="courseOptionsBtn"
-                                                    onClick={async () => {
-                                                        setMyCourse(
-                                                            recommendedRoutes[
-                                                                index
-                                                            ]
-                                                        );
-
-                                                        let dateCourse = {
-                                                            course: `${recommendedRoutesMarkers[index][0].content} -> ${recommendedRoutesMarkers[index][1].content} -> ${recommendedRoutesMarkers[index][2].content} -> ${recommendedRoutesMarkers[index][3].content} -> ${recommendedRoutesMarkers[index][4].content}`,
-                                                            information: [
-                                                                {
-                                                                    position: {
-                                                                        lat: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][0]
-                                                                            .position
-                                                                            .lat,
-                                                                        lng: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][0]
-                                                                            .position
-                                                                            .lng,
-                                                                    },
-                                                                    content:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][0]
-                                                                            .content,
-                                                                    address_name:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][0]
-                                                                            .address_name,
-                                                                    phone: recommendedRoutesMarkers[
-                                                                        index
-                                                                    ][0].phone,
-                                                                },
-                                                                {
-                                                                    position: {
-                                                                        lat: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][1]
-                                                                            .position
-                                                                            .lat,
-                                                                        lng: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][1]
-                                                                            .position
-                                                                            .lng,
-                                                                    },
-                                                                    content:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][1]
-                                                                            .content,
-                                                                    address_name:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][1]
-                                                                            .address_name,
-                                                                    phone: recommendedRoutesMarkers[
-                                                                        index
-                                                                    ][1].phone,
-                                                                },
-                                                                {
-                                                                    position: {
-                                                                        lat: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][2]
-                                                                            .position
-                                                                            .lat,
-                                                                        lng: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][2]
-                                                                            .position
-                                                                            .lng,
-                                                                    },
-                                                                    content:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][2]
-                                                                            .content,
-                                                                    address_name:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][2]
-                                                                            .address_name,
-                                                                    phone: recommendedRoutesMarkers[
-                                                                        index
-                                                                    ][2].phone,
-                                                                },
-                                                                {
-                                                                    position: {
-                                                                        lat: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][3]
-                                                                            .position
-                                                                            .lat,
-                                                                        lng: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][3]
-                                                                            .position
-                                                                            .lng,
-                                                                    },
-                                                                    content:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][3]
-                                                                            .content,
-                                                                    address_name:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][3]
-                                                                            .address_name,
-                                                                    phone: recommendedRoutesMarkers[
-                                                                        index
-                                                                    ][3].phone,
-                                                                },
-                                                                {
-                                                                    position: {
-                                                                        lat: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][4]
-                                                                            .position
-                                                                            .lat,
-                                                                        lng: recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][4]
-                                                                            .position
-                                                                            .lng,
-                                                                    },
-                                                                    content:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][4]
-                                                                            .content,
-                                                                    address_name:
-                                                                        recommendedRoutesMarkers[
-                                                                            index
-                                                                        ][4]
-                                                                            .address_name,
-                                                                    phone: recommendedRoutesMarkers[
-                                                                        index
-                                                                    ][4].phone,
-                                                                },
-                                                            ],
-                                                        };
-
-                                                        await axios.post(
-                                                            "https://brown-flies-flow-121-135-160-141.loca.lt/course/save",
-                                                            { dateCourse }
-                                                        );
-
-                                                        alert(
-                                                            "코스가 저장되었습니다."
-                                                        );
-                                                    }}
-                                                >
-                                                    데이트 코스 저장
-                                                </button>
-                                                <button
-                                                    className="courseOptionsBtn"
-                                                    onClick={() => {
-                                                        setMarkersOfThisRoute(
-                                                            recommendedRoutesMarkers[
-                                                                index
-                                                            ]
-                                                        );
-                                                        handler.onDrawRoute();
-                                                        containerRef.current.scrollIntoView(
-                                                            {
-                                                                behavior:
-                                                                    "smooth",
-                                                                block: "start",
-                                                            }
-                                                        );
-                                                    }}
-                                                >
-                                                    지도로 경로 확인
-                                                </button>
-                                                <button
-                                                    className="courseOptionsBtn"
-                                                    onClick={() => {
-                                                        if (
-                                                            messages.current[
-                                                                messages.current
-                                                                    .length - 1
-                                                            ].role ===
-                                                                "assistant" &&
-                                                            messages.current[
-                                                                messages.current
-                                                                    .length - 1
-                                                            ].content !==
-                                                                lastChunks
-                                                        ) {
-                                                            messages.current.push(
-                                                                {
-                                                                    role: "assistant",
-                                                                    content:
-                                                                        lastChunks,
-                                                                }
-                                                            );
-                                                        }
-
-                                                        handler.removeAOneCourse(
-                                                            index
-                                                        );
-                                                    }}
-                                                >
-                                                    경로 제거
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "row",
-                                        justifyContent: "center",
-                                        width: "450px",
-                                    }}
-                                >
-                                    <button
-                                        style={{
-                                            width: "120px",
-                                            height: "26px",
-                                            backgroundColor: "white",
-                                            border: "1px solid black",
-                                            borderRadius: "5px",
-                                            cursor: "pointer",
-                                            fontSize: "15px",
-                                            marginLeft: "15px",
-                                            marginTop: "10px",
-                                        }}
-                                        onClick={() => {
-                                            repeatCounter = 0;
-                                            setFollowupQuestion("");
-                                            setIsTalkingStart(false);
-                                            setLastChunks("");
-                                            urls = [];
-                                            setChatDone(false);
-                                            return handler.talkToChatGPT(
-                                                "addRoute"
-                                            );
-                                        }}
-                                    >
-                                        경로 추가
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <p></p>
-                        <input
-                            type="text"
-                            onChange={handler.onChange}
-                            value={followupQuestion}
-                            style={{
-                                width: "370px",
-                                height: "30px",
-                                fontSize: "18px",
-                                marginLeft: "5px",
-                            }}
-                        />
+                      >
                         <button
-                            onClick={() => {
-                                messages.current.push(
-                                    {
-                                        role: "assistant",
-                                        content: lastChunks,
-                                    },
-                                    {
-                                        role: "user",
-                                        content: followupQuestion,
-                                    }
-                                );
-                                repeatCounter = 0;
-                                setLastChunks("");
-                                setFollowupQuestion("");
-                                setIsTalkingStart(false);
-                                setChatDone(false);
-                                return handler.talkToChatGPT("askQuestion");
-                            }}
-                            style={{
-                                width: "80px",
-                                height: "35px",
-                                backgroundColor: "white",
-                                border: "1px solid black",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                marginLeft: "5px",
-                            }}
+                          className="default-btn course-option-btn"
+                          onClick={() =>
+                            handler.handleSaveMyCourse(routesMarkers)
+                          }
                         >
-                            질문하기
+                          데이트 코스 저장
                         </button>
-                    </div>
-                )}
-                <style jsx>
-                    {`
-                        .courseOptionsBtn {
-                            width: 120px;
-                            height: 30px;
-                            font-size: 14px;
-                            margin: 5px;
-                            background-color: #fff0f0;
-                            border: 1px solid black;
-                            border-radius: 5px;
-                            cursor: pointer;
-                        }
+                        <button
+                          className="default-btn course-option-btn"
+                          onClick={() => {
+                            handler.handleDrawRoute(routesMarkers);
+                          }}
+                        >
+                          지도로 경로 확인
+                        </button>
+                        <button
+                          className="default-btn course-option-btn"
+                          onClick={() => {
+                            handler.handleRemoveAOneCourse(index);
+                          }}
+                        >
+                          경로 제거
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  width: "450px",
+                }}
+              >
+                <button
+                  className="default-btn"
+                  style={{
+                    width: "120px",
+                    height: "26px",
+                    marginLeft: "15px",
+                    marginTop: "10px",
+                  }}
+                  onClick={() => {
+                    talkToChatGPT("addRoute");
+                  }}
+                >
+                  경로 추가
+                </button>
+              </div>
+            </section>
+            <section>
+              <input
+                type="text"
+                onChange={() => {
+                  handler.handleChangeFollowupQuestion();
+                }}
+                value={followupQuestion}
+                style={{
+                  width: "370px",
+                  height: "30px",
+                  fontSize: "18px",
+                  marginLeft: "5px",
+                }}
+              />
+              <button
+                onClick={() => {
+                  talkToChatGPT("askQuestion");
+                }}
+                className="default-btn"
+                style={{
+                  width: "80px",
+                  height: "35px",
+                  marginLeft: "5px",
+                }}
+              >
+                질문하기
+              </button>
+            </section>
+          </>
+        )}
+        <style jsx>{`
+          .wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            gap: 25px;
+          }
+          .default-btn {
+            background-color: white;
+            border: 1px solid black;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .course-option-btn {
+            width: 120px;
+            height: 30px;
+            font-size: 14px;
+            margin: 5px;
+          }
+          .course-option {
+            width: 450px;
+            height: 30px;
+            font-size: 14px;
+            margin: 5px;
+          }
+          .result-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
 
-                        .courseOptions {
-                            width: 450px;
-                            height: 30px;
-                            font-size: 14px;
-                            margin: 5px;
-                        }
+            border: 1px solid black;
+            margin: 10px;
 
-                        .addr {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                            width: 100%;
-                        }
-                        .resultBox {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
+            background-color: #fff0f0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 
-                            border: 1px solid black;
-                            margin: 10px;
-
-                            background-color: #fff0f0;
-                            border-radius: 10px;
-                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-
-                            padding: 12px;
-                        }
-                    `}
-                </style>
-            </div>
-        </>
-    );
+            padding: 12px;
+            width: 450px;
+            white-space: pre-wrap;
+          }
+        `}</style>
+      </div>
+    </>
+  );
 };
 
 export default GetUsersAddress;
