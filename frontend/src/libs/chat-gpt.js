@@ -93,6 +93,10 @@ export default class ChatGpt {
     });
   }
 
+  /**
+   * Ask the question to the GPT-3.5 API
+   * @returns {Promise<ReadableStreamDefaultReader<Uint8Array>>}
+   */
   async askQuestion() {
     if (this.messages.length === 0) {
       throw new Error("No message to ask");
@@ -118,5 +122,41 @@ export default class ChatGpt {
     );
 
     return res.body.getReader();
+  }
+
+  /**
+   * Get the answer from the GPT-3.5 API
+   * @param {ReadableStreamDefaultReader<Uint8Array>} reader
+   * @returns {AsyncGenerator<string, void, unknown>}
+   */
+  async *readAnswer(reader) {
+    const decoder = new TextDecoder("utf-8");
+
+    let lastChunk = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        this.addAssistantMessage(lastChunk + "\n\n");
+
+        yield "\n\n";
+        break;
+      }
+
+      const decodedText = decoder.decode(value).split(`\n\n`).at(0);
+
+      const data = decodedText.split("data: ").at(1);
+      if (data === "[DONE]") {
+        break;
+      }
+
+      const response = JSON.parse(data);
+      const content = response.choices?.[0]?.delta?.content;
+
+      if (content && content !== "\n\n") {
+        lastChunk += content;
+
+        yield content;
+      }
+    }
   }
 }

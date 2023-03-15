@@ -81,7 +81,7 @@ const GetUsersAddress = () => {
 
   const [map, setMap] = useState();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [chatReady, setChatReady] = useState(true);
   const [chatDone, setChatDone] = useState(false);
   const [chunks, setChunks] = useState("");
 
@@ -235,6 +235,8 @@ const GetUsersAddress = () => {
     let placeUrls = [];
     let userInputs = [];
 
+    // TODO : Refactoring 필요
+
     if (condition === "newRoutes") {
       chatGpt.reset();
       setChunks("");
@@ -267,8 +269,9 @@ const GetUsersAddress = () => {
     }
 
     /////////////////////////// 1. start crawling ///////////////////////////
-    setIsCrawlDone(false);
     setCrawledData(null);
+    setIsCrawlDone(false);
+
     axios
       .post("https://brown-flies-flow-121-135-160-141.loca.lt/crawling", {
         data: placeUrls,
@@ -281,41 +284,20 @@ const GetUsersAddress = () => {
       .catch(console.error);
 
     /////////////////////////// 2. ask question ///////////////////////////
-    setIsLoading(true);
+    setChatReady(false);
 
-    const decoder = new TextDecoder("utf-8");
-    const answer = await chatGpt.askQuestion();
+    const reader = await chatGpt.askQuestion();
 
-    setIsLoading(false);
+    setChatReady(true);
 
     /////////////////////////// 3. read answer ///////////////////////////
     setChatDone(false);
 
-    let currentChunk = "";
-    while (true) {
-      const { value, done } = await answer.read();
-      if (done) {
-        setChatDone(true);
-        setChunks((prev) => prev + "\n\n");
-        chatGpt.addAssistantMessage(currentChunk);
-        break;
-      }
-
-      const text = decoder.decode(value).split(`\n\n`).at(0);
-
-      const data = text.split("data: ")[1];
-      if (data === "[DONE]") {
-        return;
-      }
-
-      const response = JSON.parse(data);
-      const content = response.choices?.[0]?.delta?.content;
-
-      if (content && content !== "\n\n") {
-        setChunks((prev) => prev + words);
-        currentChunk += content;
-      }
+    for await (const answer of chatGpt.readAnswer(reader)) {
+      setChunks((prev) => prev + answer);
     }
+
+    setChatDone(true);
   };
 
   return (
@@ -380,7 +362,7 @@ const GetUsersAddress = () => {
             데이트 코스 추천받기
           </button>
           <div className="result-box">
-            {isLoading ? (
+            {!chatReady ? (
               <img
                 src="assets/images/loading.gif"
                 alt="loading..."
