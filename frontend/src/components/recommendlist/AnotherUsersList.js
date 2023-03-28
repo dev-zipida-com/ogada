@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from "react";
-import DaumPostcode from "react-daum-postcode";
 import { Map, MapMarker, Polyline } from "react-kakao-maps-sdk";
-import Script from "next/script";
 import axios from "axios";
 
-const callKaKaoApi = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAOMAP_APPKEY}&libraries=services,clusterer&autoload=false`;
-
 export default function AnotherUsersList() {
-    const [map, setMap] = useState(null);
-
     const [info, setInfo] = useState(null);
     const [infoState, setInfoState] = useState(false);
     const [recommendedCourseList, setRecommendedCourseList] = useState([]);
@@ -16,7 +10,7 @@ export default function AnotherUsersList() {
     useEffect(() => {
         (async () => {
             const response = await axios.get(
-                "https://brown-flies-flow-121-135-160-141.loca.lt/course"
+                `${process.env.NEXT_PUBLIC_BACKEND_API}/course`
             );
             setRecommendedCourseList(response.data);
         })();
@@ -56,15 +50,10 @@ export default function AnotherUsersList() {
                             height: "420px",
                         }}
                     >
-                        <Script
-                            src={callKaKaoApi}
-                            strategy="beforeInteractive"
-                        />
                         <Map
                             center={{ lat: initial_lat, lng: initial_lng }}
                             style={{ width: "420px", height: "420px" }}
                             level={3}
-                            onCreate={setMap}
                         >
                             {marks.map((marker, index) => (
                                 <div key={`mapmarkers-${index}`}>
@@ -108,29 +97,14 @@ export default function AnotherUsersList() {
                                             )}
                                     </MapMarker>
                                     <Polyline
+                                        key={"polylines" + index}
                                         path={[
-                                            [
-                                                {
-                                                    lat: marks[0].position.lat,
-                                                    lng: marks[0].position.lng,
-                                                },
-                                                {
-                                                    lat: marks[1].position.lat,
-                                                    lng: marks[1].position.lng,
-                                                },
-                                                {
-                                                    lat: marks[2].position.lat,
-                                                    lng: marks[2].position.lng,
-                                                },
-                                                {
-                                                    lat: marks[3].position.lat,
-                                                    lng: marks[3].position.lng,
-                                                },
-                                                {
-                                                    lat: marks[4].position.lat,
-                                                    lng: marks[4].position.lng,
-                                                },
-                                            ],
+                                            marks.map((mark) => {
+                                                return {
+                                                    lat: mark.position.lat,
+                                                    lng: mark.position.lng,
+                                                };
+                                            }),
                                         ]}
                                         strokeColor="#1E90FF"
                                         strokeOpacity={0.1}

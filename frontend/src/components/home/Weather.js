@@ -13,7 +13,7 @@ const Weather = () => {
             setWeather(response.data);
         };
         getWeather();
-    }, []);
+    }, [lat, lon]);
 
     if (weather !== null) {
         return (
@@ -31,6 +31,7 @@ const Weather = () => {
                         width: "35px",
                         height: "35px",
                     }}
+                    alt="weather icon"
                 ></img>
                 &nbsp;{weather.weather[0].main}
                 &nbsp;, {weather.main.temp} °C

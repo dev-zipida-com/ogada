@@ -12,7 +12,7 @@ const Box = ({ title, image, link }) => {
                     <h2>{title}</h2>
                 </div>
                 <div className="box__content__image">
-                    <img src={image} />
+                    <img src={image} alt="boxContentImage" />
                 </div>
             </Link>
             <style jsx>{`

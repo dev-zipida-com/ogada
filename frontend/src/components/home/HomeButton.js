@@ -11,13 +11,14 @@ const HomeButton = () => {
                     <img
                         src={"assets/images/homeButton.png"}
                         className="homeButton__content__image"
+                        alt="homeButtonImage"
                     />
                     <h3>Home</h3>
                 </div>
             </Link>
             <style jsx>{`
                 .homeButton {
-                    width: 67px;
+                    width: 100%;
                     height: 63px;
                     left: 105px;
                     top: 290px;

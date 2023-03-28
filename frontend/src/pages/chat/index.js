@@ -1,18 +1,19 @@
-// this is a page for rendering the map that located at my current place with a google map api
-// and there is a "Date course recommandation" component that located at the bottom of the page.
-// when the user click the "Date course recommandation" button, the result that the date course recommand date getting from the backend server will be shown at the bottom of the page.
+import React, { useRef } from "react";
+import SearchAddress from "@/components/chat/SearchAddress";
+import AddACourseBox from "@/components/chat/AddACourseBoxBtn";
+import AskQuestion from "@/components/chat/AskQuestionBox";
+import ChatBox from "@/components/chat/ChatBox";
+import CourseBox from "@/components/chat/CourseBox";
+import Mapper from "@/components/chat/Mapper";
+import DateRecommendationBox from "@/components/chat/dateRecommendationBox";
+import ShowAddress from "@/components/chat/ShowAddress";
 
-import React from "react";
-import Link from "next/link";
-import HorizonLine from "../components/HorizonLine";
-// import GetUsersAddress from "../components/address";
-import GetUsersAddress from "../components/Address_PR";
-import Results from "../components/results";
-import HomeButton from "../components/HomeButton";
+const Chat = () => {
+    const containerRef = useRef(null);
 
-function Chat() {
     return (
         <div
+            ref={containerRef}
             style={{
                 display: "flex",
                 flexDirection: "column",
@@ -20,13 +21,18 @@ function Chat() {
                 justifyContent: "center",
             }}
         >
-            <HorizonLine text={"."} />
-            <GetUsersAddress />
-
-            <HorizonLine text={"."} />
-            <HomeButton />
+            <SearchAddress />
+            <ShowAddress />
+            <Mapper />
+            <p></p>
+            <DateRecommendationBox />
+            <ChatBox />
+            <CourseBox containerRef={containerRef} />
+            <AddACourseBox />
+            <p></p>
+            <AskQuestion />
         </div>
     );
-}
+};
 
 export default Chat;

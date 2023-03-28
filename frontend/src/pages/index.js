@@ -1,10 +1,6 @@
 import Head from "next/head";
-import BoxGroup from "./components/BoxGroup";
-import HomeButton from "./components/HomeButton";
-import TodayRecommends from "./components/TodayRecommends";
-import HorizonLine from "./components/HorizonLine";
-import { useRouter } from "next/router";
-import Weather from "./components/Weather";
+import BoxGroup from "@/components/home/BoxGroup";
+import Weather from "@/components/home/Weather";
 
 export default function Home() {
     return (
@@ -29,13 +25,8 @@ export default function Home() {
                     justifyContent: "center",
                 }}
             >
-                <HorizonLine text={"·"} />
                 <Weather />
                 <BoxGroup />
-                <HorizonLine text={"·"} />
-                {/* <TodayRecommends todayRecommends={[]} /> */}
-                {/* <HorizonLine text={"·"} /> */}
-                <HomeButton />
             </div>
         </>
     );
