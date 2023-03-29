@@ -1,3 +1,5 @@
+// the function takes a message and returns an object with configuration settings for sending a POST request to the chatGPT API.
+// The important key that the object contains is stream: true, which allows the function to return a stream of data instead of a single response.
 function setConfiguration(message) {
     return {
         method: "POST",
@@ -14,6 +16,7 @@ function setConfiguration(message) {
     };
 }
 
+// The talk function takes a message and returns a stream of data from the chatGPT API.
 export async function talk(message) {
     const reader = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -67,6 +70,8 @@ export async function talk(message) {
     return text;
 }
 
+// The talkWithGenerator function is similar to talk, but instead of returning the processed text immediately, it returns a generator object that can be used to iterate through the response data as it becomes available.
+// This is done using the repeater generator function, which repeatedly reads chunks of data from the response stream and yields the accumulated text at each iteration.
 async function* repeater(reader, decoder) {
     let text = "";
     while (true) {
