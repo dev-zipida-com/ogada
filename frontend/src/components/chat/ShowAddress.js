@@ -1,6 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
+// This component returns the address of the place selected by the user.
 export default function ShowAddress() {
     const { address } = useSelector((state) => state.map);
 
