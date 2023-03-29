@@ -26,6 +26,8 @@ const CourseBox = forwardRef((props, ref) => {
 
     const dispatch = useDispatch();
 
+    // set onCourseBtn's length to markersList's length at all time.
+    // ocCourseBtn is used to show the course is selected or not.
     useEffect(() => {
         if (onCourseBtn.length !== markersList.length) {
             setOnCourseBtn(
@@ -39,6 +41,8 @@ const CourseBox = forwardRef((props, ref) => {
         }
     }, [markersList, onCourseBtn]);
 
+    // drawMarks function is used to draw markers on the map.
+    // when the user clicks the course button, the map is centered to the course.
     function drawMarks(index) {
         if (showACenter) {
             dispatch(mapActions.setShowACenter(false));
@@ -64,7 +68,8 @@ const CourseBox = forwardRef((props, ref) => {
             inline: "nearest",
         });
     }
-
+    
+    // removeACourse function is used to remove the course.
     function removeACourse(index) {
         if (markersList.length === 1) {
             alert("최소 1개의 코스를 선택해주세요.");
