@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState, useRef } from "react";
 import * as mapActions from "@/lib/store/modules/map";
 
+// This code defines the Mapper component, which renders a map and markers.
 export default function Mapper() {
     const dispatch = useDispatch();
 
@@ -19,16 +20,22 @@ export default function Mapper() {
 
     const lat = centerPosition.lat;
     const lng = centerPosition.lng;
-
+    
+    // The info and infoState variables are used to render the information of a marker when it is clicked.
+    // When a marker is clicked, the component checks if there is any menu data associated with the place.
+    // And if so, it sets the info state variable to the data and sets the infoState variable to true, triggering a re-render of the component to display the information.
     const [info, setInfo] = useState(false);
     const [infoState, setInfoState] = useState(false);
-
+    
+    // The useEffect hook is used to update the center position of the map when the showACenter variable is true.
     useEffect(() => {
         if (map && showACenter) {
             dispatch(mapActions.setCenterPosition({ lat, lng }));
         }
     }, [lat, lng]);
-
+    
+    // the component returns a div containing the Map component and the necessary markers and polyline components,
+    // As well as the click event handler for displaying information about a selected marker.
     return (
         <div>
             <Map
