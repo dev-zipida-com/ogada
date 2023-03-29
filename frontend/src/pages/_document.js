@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export default function Document() {
-    const geocoderApiKey = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.KAKAOMAP_JAVASCRIPT_KEY}&libraries=services,clusterer&autoload=false`;
+    const geocoderApiKey = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAOMAP_APPKEY}&libraries=services,clusterer&autoload=false`;
 
     return (
         <Html lang="en">

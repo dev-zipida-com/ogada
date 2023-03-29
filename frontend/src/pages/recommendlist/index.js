@@ -1,9 +1,5 @@
 import React from "react";
-import HorizonLine from "../components/HorizonLine";
-
-import HomeButton from "../components/HomeButton";
-import AnotherUsersList from "../components/AnotherUsersList";
-
+import AnotherUsersList from "@/components/recommendlist/AnotherUsersList";
 function Chat() {
     return (
         <div
@@ -14,11 +10,7 @@ function Chat() {
                 justifyContent: "center",
             }}
         >
-            <HorizonLine text={"."} />
             <AnotherUsersList />
-
-            <HorizonLine text={"."} />
-            <HomeButton />
         </div>
     );
 }
