@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+// This component returns the weather of the middle point of Seoul.
 const Weather = () => {
     const [lat, lon] = [37.5642135, 127.0016985];
     const [weather, setWeather] = useState(null);
