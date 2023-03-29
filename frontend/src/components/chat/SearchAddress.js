@@ -6,11 +6,14 @@ import setCoordinationOnStore from "@/lib/setCoordinationOnStore";
 import getPlaceInfoList from "@/lib/getPlaceInfoList";
 import { useSelector } from "react-redux";
 
+// a React component called "SearchAddress" that allows the user to search for a location using a postcode (zipcode) lookup service provided by Daum Postcode.
 export default function SearchAddress() {
     const dispatch = useDispatch();
     const [openPostcode, setOpenPostcode] = useState(false);
     const { map } = useSelector((state) => state.map);
 
+    // When the user clicks on the "주소검색" (search address) button, the onClick event handler is triggered, either displaying or hiding the DaumPostcode component.
+    // If the DaumPostcode component is displayed, the user can search for a location using the postcode lookup service provided by Daum Postcode.
     return (
         <div>
             <button
