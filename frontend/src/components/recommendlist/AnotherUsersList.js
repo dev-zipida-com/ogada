@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Map, MapMarker, Polyline } from "react-kakao-maps-sdk";
 import axios from "axios";
 
+// This component returns the list of recommended courses created by the users.
 export default function AnotherUsersList() {
     const [info, setInfo] = useState(null);
     const [infoState, setInfoState] = useState(false);
     const [recommendedCourseList, setRecommendedCourseList] = useState([]);
-
+    
+    // The useEffect hook is used to get the list of recommended courses from the backend.
     useEffect(() => {
         (async () => {
             const response = await axios.get(
@@ -19,6 +21,8 @@ export default function AnotherUsersList() {
     if (recommendedCourseList.length === 0) {
         return <div>Loading...</div>;
     }
+    // The component returns a div containing the Map component and the necessary markers and polyline components,
+    // As well as the click event handler for displaying information about a selected marker.
     return (
         <div
             style={{
