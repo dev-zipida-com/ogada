@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import React, { useEffect } from "react";
 import getANewPlaces from "@/lib/getANewPlaces";
 
+// this component return a button for adding the initial 3 routes to a map.
 export default function DateRecommendationBox() {
     const dispatch = useDispatch();
     const { placeInfoList } = useSelector((state) => state.map);
@@ -13,14 +14,15 @@ export default function DateRecommendationBox() {
 
         if (placeInfoList) {
             dispatch(mapActions.setPlaceInfoList(placeInfoList));
-
             dispatch(mapActions.setIsCrawlingDone(false));
-
+    
+            // getANewPlaces function is called with the placeInfoList variable and the number of routes to be added as arguments.
             const { markers, urls, prompts, newCrawledData } =
                 await getANewPlaces(placeInfoList, 3);
 
             this_url = urls;
-
+            
+            // If the markers, urls, prompts, and newCrawledData variables are not empty, the function dispatches various actions to update the markers, urls, prompts, and crawledData state variables.
             if (markers.length > 0) {
                 markers.map((marker) => {
                     dispatch(mapActions.setMarkersList(marker));
@@ -49,6 +51,8 @@ export default function DateRecommendationBox() {
         }
     }
 
+    // Call the setPlaceInfoListOnStore function and dispatch actions to set the mod, chat status, and talking status.
+    // following the mod status, the ChatBox will render the appropriate text.
     return (
         <div
             style={{
