@@ -1,5 +1,6 @@
 import React from "react";
 
+// This component returns a horizon line with text.
 const HorizonLine = ({ text }) => {
     return (
         <div

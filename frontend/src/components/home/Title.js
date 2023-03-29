@@ -1,5 +1,6 @@
 import React from "react";
 
+// This component returns the title image of the main page.
 const Title = () => {
     return (
         <div>

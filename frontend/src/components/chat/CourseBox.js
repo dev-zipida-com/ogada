@@ -11,21 +11,20 @@ const CourseBox = forwardRef((props, ref) => {
         markersList,
         crawledData,
         isCrawlingDone,
-        attentionIndex,
         map,
         address,
         showACenter,
         showInteractionPanel,
     } = useSelector((state) => state.map);
 
-    const { message, isChatDone, initMUP } = useSelector(
-        (state) => state.chatGPT
-    );
+    const { isChatDone } = useSelector((state) => state.chatGPT);
 
     const [onCourseBtn, setOnCourseBtn] = useState([]);
 
     const dispatch = useDispatch();
 
+    // set onCourseBtn's length to markersList's length at all time.
+    // ocCourseBtn is used to show the course is selected or not.
     useEffect(() => {
         if (onCourseBtn.length !== markersList.length) {
             setOnCourseBtn(
@@ -39,6 +38,8 @@ const CourseBox = forwardRef((props, ref) => {
         }
     }, [markersList, onCourseBtn]);
 
+    // drawMarks function is used to draw markers on the map.
+    // when the user clicks the course button, the map is centered to the course.
     function drawMarks(index) {
         if (showACenter) {
             dispatch(mapActions.setShowACenter(false));
@@ -65,6 +66,7 @@ const CourseBox = forwardRef((props, ref) => {
         });
     }
 
+    // removeACourse function is used to remove the course.
     function removeACourse(index) {
         if (markersList.length === 1) {
             alert("최소 1개의 코스를 선택해주세요.");
@@ -226,6 +228,7 @@ const CourseBox = forwardRef((props, ref) => {
                                                             cursor: "pointer",
                                                         }}
                                                         onClick={async () => {
+                                                            // saving the course
                                                             dispatch(
                                                                 mapActions.setAttentionIndex(
                                                                     index
@@ -281,9 +284,6 @@ const CourseBox = forwardRef((props, ref) => {
                                                                 alert(
                                                                     "코스 저장에 실패했습니다."
                                                                 );
-                                                                console.log(
-                                                                    res
-                                                                );
                                                             }
                                                         }}
                                                     >
@@ -311,6 +311,7 @@ const CourseBox = forwardRef((props, ref) => {
                                                         }}
                                                         className="courseOptionsBtn"
                                                         onClick={() => {
+                                                            // showing the course on the map
                                                             dispatch(
                                                                 mapActions.setAttentionIndex(
                                                                     index
@@ -343,6 +344,7 @@ const CourseBox = forwardRef((props, ref) => {
                                                         }}
                                                         className="courseOptionsBtn"
                                                         onClick={() => {
+                                                            // removing the course
                                                             removeACourse(
                                                                 index
                                                             );
@@ -372,5 +374,6 @@ const CourseBox = forwardRef((props, ref) => {
         </div>
     );
 });
+
 CourseBox.displayName = "CourseBox";
 export default CourseBox;

@@ -1,3 +1,4 @@
+// Place information is retrieved through keyword search using the Kakao Map API.
 export default async function getPlaceInfoList(address, map) {
     const service = new kakao.maps.services.Places(map);
     const keywords = [

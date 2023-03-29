@@ -1,6 +1,8 @@
-import { createSlice, current } from "@reduxjs/toolkit";
-import { talk, talkWithGenerator } from "@/lib/talk";
+import { createSlice } from "@reduxjs/toolkit";
 
+// The slice defines an initial state object that contains various properties representing the state of the chatGPT.
+
+// systemDefaultPrompt is a template for the initial prompt that is sent to the chatGPT API.
 const systemDefaultPrompt = (responseLanguage) => `
     Describe the topic below "---"
     Adhere to the options below.
@@ -55,6 +57,7 @@ const systemDefaultPrompt = (responseLanguage) => `
 
 `;
 
+// addRoutesDefaultMessage is a template for the prompt that is sent to the chatGPT API when the user clicks the "경로 추가" button.
 const addRoutesDefaultMessage = `Recommend only one more new dating course with the data under "---", based on the format I've already provided. You should only use the 5 shop information that newly added at this time, and the sequence must be exactly as I suggested.  \n---\n `;
 
 const initialState = {

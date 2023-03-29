@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// The slice defines an initial state object that contains various properties representing the state of the map.
 const initialState = {
     address: "",
     map: null,

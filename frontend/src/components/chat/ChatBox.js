@@ -4,6 +4,9 @@ import * as chatGPTActions from "@/lib/store/modules/chatGPT";
 import { talkWithGenerator } from "@/lib/talk";
 import * as mapActions from "@/lib/store/modules/map";
 
+// The main logic of the component is contained within a conditional statement that checks whether the mod variable is set to "start", "addRoutes", or "askQuestion".
+// If these conditions are met, the component uses the talkWithGenerator function to generate a response to the prompts using a GPT language model.
+// The response is then added to the chat history and displayed in the chat box.
 export default function ChatBox() {
     const { promptsList, isCrawlingDone } = useSelector((state) => state.map);
 
@@ -21,6 +24,7 @@ export default function ChatBox() {
 
     const containerRef = useRef();
 
+    // This code defines the scrollToBottom function, which is used to scroll the chat box to the bottom when a new message is added.
     useEffect(() => {
         containerRef.current.scrollIntoView({
             block: "end",
@@ -30,6 +34,7 @@ export default function ChatBox() {
 
     const dispatch = useDispatch();
 
+    // if some conditions are met, the component uses the talkWithGenerator function to generate a response to the prompts using a GPT language model.
     if (
         isTalkingStart &&
         !isChatDone &&
@@ -77,6 +82,7 @@ export default function ChatBox() {
                 dispatch(chatGPTActions.setIsChatDone(true));
             })();
 
+            // initialize mod for stoping the loop
             dispatch(chatGPTActions.setMod("none"));
         } else if (mod === "addRoutes") {
             const prompts = promptsList[promptsList.length - 1];
@@ -112,6 +118,7 @@ export default function ChatBox() {
                 dispatch(chatGPTActions.setIsChatDone(true));
             })();
 
+            // initialize mod for stoping the loop
             dispatch(chatGPTActions.setMod("none"));
         } else if (mod === "askQuestion") {
             const priorChunk = lastChunk;
@@ -146,9 +153,12 @@ export default function ChatBox() {
                 dispatch(chatGPTActions.setIsChatDone(true));
             })();
 
+            // initialize mod for stoping the loop
             dispatch(chatGPTActions.setMod("none"));
         }
     }
+    // The component returns a div element that contains the chat box.
+    // The component displays a loading icon while the GPT language model is generating a response. but if the response is not generated, the component displays a default image.
     return (
         <div className="wrapper" ref={containerRef}>
             <div
